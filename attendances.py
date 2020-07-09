@@ -99,24 +99,30 @@ class Attendance:
 
     @staticmethod
     def report_by_month(attend_list, month=None):
+        now = datetime.datetime.now()
+        cur_month = now.month
+        cur_year = now.year
         while month is None:
             try:
                 month = int(input('Please enter the month for the report or -1 for current month: '))
                 if month == -1:
-                    month = datetime.datetime.now().month
+                    month = cur_month
                 elif not 1 <= month <= 12:
                     raise ValueError
+                else:
+                    if month > cur_month:
+                        cur_year -= 1
             except ValueError:
                 print('The month should be an number between 1 and 12.')
                 month = None
         report = []
         for attend in attend_list:
-            if attend.date.month == month:
+            if attend.date.month == month and attend.date.year == cur_year:
                 report.append(attend)
         if len(report) == 0:
-            print(f'No attendance was registered for this month.')
+            print(f'No attendance was registered for {month}:{cur_year}.')
         else:
-            create_report_file(f'Attendance report for month {month}.csv', report)
+            create_report_file(f'Attendance report for {month}:{cur_year}.csv', report)
             print(f'Check your library for the report.')
 
     @staticmethod
@@ -132,15 +138,17 @@ class Attendance:
             except AssertionError:
                 print('Please enter a valid work time, between 6am and 7pm.')
                 hour = None
+        print('Lets enter start date for the report (end date is today): ')
+        start_date = Attendance.enter_date()
         report = []
         for attend in attend_list:
-            if hour <= attend.time:
+            if hour <= attend.time and attend.date >= start_date:
                 report.append(attend)
         hour = hour.strftime("%H.%M")
         if len(report) == 0:
-            print(f'No attendance was registered after {hour}.')
+            print(f'No attendance was registered after {hour} from {start_date}.')
         else:
-            create_report_file(f'Attendance report after {hour}.csv', report)
+            create_report_file(f'Attendance report after {hour} from {start_date}.csv', report)
             print(f'Check your library for the report.')
 
     @staticmethod
@@ -149,8 +157,11 @@ class Attendance:
             try:
                 day, month, year = input('Please enter a date(dd-mm-yyyy): ').split('-')
                 date = datetime.date(int(year), int(month), int(day))
+                assert date > datetime.datetime.now()
             except ValueError:
                 print('Please enter valid integer numbers.')
+            except AssertionError:
+                print('Only past dates are valid.')
             else:
                 return date
 
