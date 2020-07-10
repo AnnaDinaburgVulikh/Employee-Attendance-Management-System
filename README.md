@@ -22,7 +22,7 @@ She Codes learning project for python course
     1.1. Uses Employee class with 4 fields: 
     - ID - 9 digits  
     - Name - a string, can include two words.  
-    - Phone - 9/10 digits, can include a `-` after the prefix.  
+    - Phone - 9/10 digits, can include a `-` after the prefix(2/3 first digits).  
     - Birthday - uses the template dd/mm/yyyy.   
     
     1.2. A dictionary is built based on the Employees.csv, using ID as key and Employee class instance as value.
@@ -30,7 +30,7 @@ She Codes learning project for python course
  
     2.1. Uses Attendance class with 4 fields: 
     - ID - 9 digits  
-    - Name - a string, can include two words.
+    - Name - a string, can include two or more words.
     - Date - uses the template dd/mm/yyyy (auto update on creation)
     - Time - uses the template HH:MM (auto update on creation)
     

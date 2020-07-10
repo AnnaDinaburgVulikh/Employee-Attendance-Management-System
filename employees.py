@@ -42,18 +42,20 @@ class Employee:
     # Functions related to Employee
 
     @staticmethod
-    def load_employee_dic(user_path=None):
+    def load_employee_dic(user_path=None, add_employee=None):
         # Used before the class instance is formed or used as a helper for adding employees from file
         while True:
             try:  # Should check if the file exists.
-                if user_path is None:
+                if user_path is None and add_employee is None:
+                    user_path = input("Enter the path of your file or -1 to create one: ")
+                    if user_path != Employee.path_employee:
+                        Employee.path_employee = user_path
+                elif user_path is None and add_employee:
                     user_path = input("Enter the path of your file: ")
                 if user_path == '-1':
                     Employee.update_employee_file({})
                     user_path = Employee.path_employee
                 assert os.path.exists(user_path)
-                if user_path != Employee.path_employee:
-                    Employee.path_employee = user_path
             except AssertionError:
                 print("I did not find the file at: " + str(user_path))
                 user_path = None
@@ -88,24 +90,24 @@ class Employee:
         """Lets the user enter a name, and checks it's a string of chars only."""
         while True:
             try:
-                name = str(input('Please enter your name (example: john smith): '))
-                while not re.match("[a-zA-Z]+[ ]?[a-zA-Z]*$", name):
-                    if name == '':
+                name = str(input('Please enter your name (example: John Smith): '))
+                while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):  #[A-Z][a-zA-Z]+[ ]?[a-zA-Z]*$
+                    if name == '' or name == ' ':
                         print('You didn\'t enter a name.')
                     elif '  ' in name:
                         print('Only one space allowed.')
                     else:
-                        print('The name should consist of letters only.')
+                        print('The name should consist of letters only and include 2 consecutive letters at least.')
                     name = str(input('Please enter your name (example: john smith): '))
             except ValueError:
-                print('The name should consist of letters only.')
+                print('The name should consist of letters only and include 2 consecutive letters at least.')
             else:
                 return name
 
     @staticmethod
     def enter_phone():  # part of add_employee_manually
         phone = input("Please enter a phone number(0xx-xxxxxxx): ")
-        while not re.match('0\d\d?-?\d{7}', phone):
+        while not re.match('0[1-9]{1,2}-?[1-9]{7}', phone):
             print("Error! Make sure you follow the template and enter numbers only.")
             phone = input("Please enter a phone number(0xx-xxxxxxx): ")
         return phone
@@ -145,10 +147,10 @@ class Employee:
     @staticmethod
     def add_employee_from_file(dic):
         # Runs the load dictionary to load the new rows and if the file is proper adds the value to main employee file
-        new_dic, num = Employee.load_employee_dic()
+        new_dic, num = Employee.load_employee_dic(add_employee=True)
         if num is not None and num > 0:
-            dic.update(new_dic)
-            Employee.update_employee_file(dic)
+            new_dic.update(dic)
+            Employee.update_employee_file(new_dic)
             print('Employees were added.')
         return dic
 
