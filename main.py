@@ -15,7 +15,7 @@ def main():  # makes the program work
         conn.set_session(autocommit=True)
         cur = conn.cursor()
         print('Welcome to Employee Attendance Managment system!')
-        num = Employee.employees_count(cur)
+        num = db_connect.employees_count(cur)
         print('The company has %d employees.' % num)
         print('What would you like to do today?')
         choice = 1

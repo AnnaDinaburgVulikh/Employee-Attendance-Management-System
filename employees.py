@@ -3,6 +3,8 @@ import csv
 import datetime
 import os
 from attendances import Attendance
+import db_connect
+
 
 
 class Employee:
@@ -94,7 +96,7 @@ class Employee:
             for employee in dic.values():
                 employee_writer.writerow([employee.id, employee.name, employee.title, employee.phone, employee.birthday])
 
-    @staticmethod
+    @staticmethod  # db
     def enter_name():  # part of add_employee_manually
         """Lets the user enter a name, and checks it's a string of chars only."""
         while True:
@@ -113,7 +115,7 @@ class Employee:
             else:
                 return name
 
-    @staticmethod
+    @staticmethod  # db
     def enter_phone():  # part of add_employee_manually
         phone = input("Please enter a phone number(0xx-xxxxxxx): ")
         while not re.match('0[1-9]{1,2}-?[1-9]{7}', phone):
@@ -121,7 +123,7 @@ class Employee:
             phone = input("Please enter a phone number(0xx-xxxxxxx): ")
         return phone
 
-    @staticmethod
+    @staticmethod  #db
     def enter_birthday():  # part of add_employee_manually
         age = 0
         while True:
@@ -138,7 +140,7 @@ class Employee:
                 return birthday
         pass
 
-    @staticmethod
+    @staticmethod  # DB
     def enter_title():  # part of add_employee_manually
         title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
         while not re.match('[msj]', title):
@@ -146,21 +148,21 @@ class Employee:
             title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
         return title
 
-    @staticmethod
-    def add_employee_manually(employee_dic):
+    @staticmethod  # DB
+    def add_employee_manually(cur):
         e_id = Attendance.enter_id()
-        if e_id in employee_dic:
+        check_id = db_connect.check_id_exist(cur, e_id)
+        if db_connect.check_id_exist(cur, e_id): #check_id[0] == 1:
             print("The employee id %s is already listed." % e_id)
-            return employee_dic
+            return
         else:
             name = Employee.enter_name()
             title = Employee.enter_title()
             phone = Employee.enter_phone()
             birthday = Employee.enter_birthday()
-            employee_dic[e_id] = Employee(e_id, name, title, phone, birthday)
-            Employee.update_employee_file(employee_dic)
+            db_connect.add_employee(cur, Employee(e_id, name, title, phone, birthday))
             print("Added an employee with id %s." % e_id)
-            return employee_dic
+            return
 
     @staticmethod
     def add_employee_from_file(dic):

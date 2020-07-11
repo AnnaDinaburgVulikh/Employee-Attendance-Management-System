@@ -1,6 +1,8 @@
 import csv
 import datetime
 import os
+import db_connect
+
 
 
 class Attendance:
@@ -56,7 +58,7 @@ class Attendance:
                         line_count += 1
                     return lst
 
-    @staticmethod
+    @staticmethod #db
     def enter_id(e_id=None):
         while True:
             try:
