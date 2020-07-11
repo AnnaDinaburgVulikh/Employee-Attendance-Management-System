@@ -10,16 +10,16 @@ def main():  # makes the program work
     choice = 1
     while choice != 0:
         try:
-            choice = int(input('''    1 - add employee manually
-    2 - add employees from file
-    3 - delete employee manually
-    4 - delete employees from file
-    5 - mark attendance
-    6 - generate attendance report of an employee
-    7 - print an attendance report for a chosen month for all employees (active only)
-    8 - print an attendance report for all employees who were late (choose arrival time limit)
-    9 - print an attendance report by dates
-    0 - exit the program
+            choice = int(input('''    1 - Add employee manually
+    2 - Add employees from file
+    3 - Delete employee manually
+    4 - Delete employees from file
+    5 - Mark attendance
+    6 - Generate attendance report of an employee
+    7 - Print an attendance report for a chosen month for all employees (active only)
+    8 - Print an attendance report for all employees who were late (choose arrival time limit)
+    9 - Print an attendance report by dates
+    0 - Exit the program
     Enter your choice: '''))
             if not 0 <= choice <= 9:
                 raise ValueError

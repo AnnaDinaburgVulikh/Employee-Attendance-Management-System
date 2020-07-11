@@ -7,10 +7,17 @@ from attendances import Attendance
 
 class Employee:
     path_employee = 'employees.csv'
+    TITLES = ('Manager', 'Senior', 'Junior')
 
-    def __init__(self, emp_id: str, name: str, phone: str, birthday):
+    def __init__(self, emp_id: str, name: str, title: str, phone: str, birthday):
         self.id = str(emp_id)
         self.name = name
+        if title == 'm':
+            self.title = Employee.TITLES[0]
+        elif title == 's':
+            self.title = Employee.TITLES[1]
+        else:
+            self.title = Employee.TITLES[2]
         self.phone = str(phone)
         if type(birthday) is str:
             # year, month, day = str(birthday).split('-')
@@ -70,7 +77,9 @@ class Employee:
                     for row in csv_reader:
                         if line_count != 0:
                             if len(row) == 4:
-                                dic[row[0]] = Employee(row[0], row[1], row[2], row[3])
+                                dic[row[0]] = Employee(row[0], row[1], 'j', row[2], row[3])
+                            elif len(row):
+                                dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
                             else:
                                 print(f'The data in row {line_count} is partially missing.')
                                 return None, None
@@ -81,9 +90,9 @@ class Employee:
     def update_employee_file(dic):
         with open(Employee.path_employee, mode='w', newline='') as employee_file:
             employee_writer = csv.writer(employee_file, delimiter=',')
-            employee_writer.writerow(['employee id', 'name', 'phone', 'birthday'])
+            employee_writer.writerow(['employee id', 'name', 'title', 'phone', 'birthday'])
             for employee in dic.values():
-                employee_writer.writerow([employee.id, employee.name, employee.phone, employee.birthday])
+                employee_writer.writerow([employee.id, employee.name, employee.title, employee.phone, employee.birthday])
 
     @staticmethod
     def enter_name():  # part of add_employee_manually
@@ -130,6 +139,14 @@ class Employee:
         pass
 
     @staticmethod
+    def enter_title():  # part of add_employee_manually
+        title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
+        while not re.match('[msj]', title):
+            print("Error! Make sure to choose from the allowed characters.")
+            title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
+        return title
+
+    @staticmethod
     def add_employee_manually(employee_dic):
         e_id = Attendance.enter_id()
         if e_id in employee_dic:
@@ -137,9 +154,10 @@ class Employee:
             return employee_dic
         else:
             name = Employee.enter_name()
+            title = Employee.enter_title()
             phone = Employee.enter_phone()
             birthday = Employee.enter_birthday()
-            employee_dic[e_id] = Employee(e_id, name, phone, birthday)
+            employee_dic[e_id] = Employee(e_id, name, title, phone, birthday)
             Employee.update_employee_file(employee_dic)
             print("Added an employee with id %s." % e_id)
             return employee_dic

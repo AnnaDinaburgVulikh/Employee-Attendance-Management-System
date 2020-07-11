@@ -23,7 +23,7 @@ She Codes learning project for python course
     - ID - 9 digits  
     - Name - a string, can include two words.  
     - Phone - 9/10 digits, can include a `-` after the prefix(2/3 first digits).  
-    - Birthday - uses the template dd/mm/yyyy.   
+    - Birthday - uses the template dd/mm/yyyy.
     
     1.2. A dictionary is built based on the Employees.csv, using ID as key and Employee class instance as value.
 2. **Attendance Log:** 
