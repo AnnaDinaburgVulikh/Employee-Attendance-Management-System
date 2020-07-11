@@ -1,5 +1,5 @@
 # Employee-Attendance-Management-System
-She Codes learning project for python course
+She Codes learning project for python course using PostgreSQL and PGadmin
 
 ## **Project Files**
 
@@ -8,11 +8,14 @@ She Codes learning project for python course
 2. **Employees** - includes the Employee class and all related methods and functions.
 3. **Attendances** - includes the Attendance class and all related functions.
 
-#### **The data will be stored in 2 main files:**
-1. **Employees.csv** - will include a header row and data about the employees
-   _(ID, name, phone number and birthday)_.
-2. **Attendance_log.csv** - will include a header row and the attendance data
-   _(date, time, ID, name)_.
+#### Init and Config files:
+1. **database.ini** - stores basic variables as host, user, password, database. Used by _config.py_ .
+2. **config.py** - starts the connection with the database. Used in _main.py_ and _init_database.py_.
+3. **init_database.py** - initialises the tables in the database. Sould run it before running _main.py_ for the first time.
+
+#### **The data will be stored in 2 tables in the DB:**
+1. **Employees** - stores data about the employees, includes _(ID, name, phone number and birthday)_.
+2. **Attendance** - stores the attendance data of the company, includes _(date, time, ID)_.
 
 ## **Project Functions**
 
