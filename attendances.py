@@ -1,14 +1,14 @@
 import csv
 import datetime
-import os
 import db_connect
+import calendar
 
 
 
 class Attendance:
     path_attendance = 'attendance_log.csv'
 
-    def __init__(self, emp_id: str, name: str, date=None, time=None):
+    def __init__(self, emp_id: str, name=None, date=None, time=None):
         self.id = str(emp_id)
         self.name = name
         if date is None or time is None:
@@ -23,42 +23,6 @@ class Attendance:
         return f'{self.name}, ID num: {self.id} arrived at {self.time} on {self.date}'
 
     @staticmethod
-    def load_attendance_list(user_path=None):
-        # Used before the class instance is formed or used as a helper for adding employees from file
-        if user_path is None:
-            user_path = Attendance.path_attendance
-        while True:
-            try:  # Should check if the file exists.
-                if user_path is None:
-                    user_path = input("Enter the path of your file or -1 to create one: ")
-                if user_path == '-1':
-                    create_report_file(Attendance.path_attendance, [])
-                    user_path = Attendance.path_attendance
-                assert os.path.exists(user_path)
-                if user_path != Attendance.path_attendance:
-                    Attendance.path_attendance = user_path
-            except AssertionError:
-                print("I did not find the file at: " + str(user_path))
-                user_path = None
-            else:
-                with open(user_path, mode='r') as csv_file:
-                    lst = []
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-                    if csv_reader is None:
-                        print('The file was empty')
-                        return lst
-                    line_count = 0
-                    for row in csv_reader:
-                        if line_count != 0:
-                            if len(row) == 4:
-                                lst.append(Attendance(row[2], row[3], row[0], row[1]))
-                            else:
-                                print(f'The data in row {line_count} is partially missing.')
-                                return None
-                        line_count += 1
-                    return lst
-
-    @staticmethod #db
     def enter_id(e_id=None):
         while True:
             try:
@@ -73,24 +37,19 @@ class Attendance:
                 return e_id
 
     @staticmethod
-    def mark_attendance(employee_dic: dict, e_id=None):
+    def mark_attendance(cur, e_id=None):
         e_id = Attendance.enter_id(e_id)
-        if e_id in employee_dic:
-            attend_list = Attendance.load_attendance_list(Attendance.path_attendance)
-            attend_list.append(Attendance(e_id, employee_dic[e_id].name))
-            create_report_file(Attendance.path_attendance, attend_list)
+        if db_connect.check_id_exist(cur, e_id):
+            db_connect.add_attendance(cur, Attendance(e_id))
             print("Marked an attendance for id %s." % e_id)
         else:
             print('There is no employee with this ID in our company.')
 
     @staticmethod
-    def attendance_report_by_id(attend_list, employee_dic):
+    def attendance_report_by_id(cur):
         e_id = Attendance.enter_id()
-        if e_id in employee_dic:
-            report = []
-            for attend in attend_list:
-                if attend.id == e_id:
-                    report.append(attend)
+        if db_connect.check_id_exist(cur, e_id):
+            report = db_connect.attendance_by_id(cur, e_id)
             if len(report) == 0:
                 print(f'No attendance was registered for employee {e_id}.')
             else:
@@ -100,7 +59,7 @@ class Attendance:
             print('There is no employee with this ID in our company.')
 
     @staticmethod
-    def report_by_month(attend_list, month=None):
+    def report_by_month(cur, month=None):
         now = datetime.datetime.now()
         cur_month = now.month
         cur_year = now.year
@@ -117,18 +76,17 @@ class Attendance:
             except ValueError:
                 print('The month should be an number between 1 and 12.')
                 month = None
-        report = []
-        for attend in attend_list:
-            if attend.date.month == month and attend.date.year == cur_year:
-                report.append(attend)
+        start_date = datetime.date(cur_year, month, 1)
+        end_date = datetime.date(cur_year, month, calendar.monthrange(cur_year,month)[1])
+        report = db_connect.attendance_by_date(cur, start_date, end_date)
         if len(report) == 0:
-            print(f'No attendance was registered for {month}:{cur_year}.')
+            print(f'No attendance was registered for {month}-{cur_year}.')
         else:
-            create_report_file(f'Attendance report for {month}:{cur_year}.csv', report)
+            create_report_file(f'Attendance report for {month}-{cur_year}.csv', report)
             print(f'Check your library for the report.')
 
     @staticmethod
-    def report_by_hour(attend_list, hour=None):
+    def report_by_hour(cur, hour=None):
         while hour is None:
             try:
                 time = input('Please enter the hour for the report (HH:MM) : ')
@@ -142,10 +100,7 @@ class Attendance:
                 hour = None
         print('Lets enter start date for the report (end date is today): ')
         start_date = Attendance.enter_date()
-        report = []
-        for attend in attend_list:
-            if hour <= attend.time and attend.date >= start_date:
-                report.append(attend)
+        report = db_connect.attendance_after_hour(cur, hour, start_date)
         hour = hour.strftime("%H.%M")
         if len(report) == 0:
             print(f'No attendance was registered after {hour} from {start_date}.')
@@ -159,7 +114,7 @@ class Attendance:
             try:
                 day, month, year = input('Please enter a date(dd-mm-yyyy): ').split('-')
                 date = datetime.date(int(year), int(month), int(day))
-                assert date > datetime.datetime.now()
+                assert date < datetime.datetime.now().date()
             except ValueError:
                 print('Please enter valid integer numbers.')
             except AssertionError:
@@ -168,7 +123,7 @@ class Attendance:
                 return date
 
     @staticmethod
-    def report_by_dates(attend_list, start_date=None, end_date=None):
+    def report_by_dates(cur, start_date=None, end_date=None):
         if start_date is None:
             print('Lets enter start date: ')
             start_date = Attendance.enter_date()
@@ -183,10 +138,7 @@ class Attendance:
             except AssertionError:
                 print(f'End date should be later than {start_date}.')
             else:
-                report = []
-                for attend in attend_list:
-                    if start_date <= attend.date <= end_date:
-                        report.append(attend)
+                report = db_connect.attendance_by_date(cur, start_date, end_date)
                 if len(report) == 0:
                     print(f'No attendance was registered between {start_date} and {end_date}.')
                 else:
@@ -200,4 +152,4 @@ def create_report_file(path, lst):  # A helper function, creates the report file
         attend_writer.writerow(['Date', 'Time', 'employee id', 'name'])
         for attendance in lst:
             attend_writer.writerow(
-                [attendance.date, attendance.time.strftime("%H:%M:%S"), attendance.id, attendance.name])
+                [attendance[0], attendance[1].strftime("%H:%M:%S"), attendance[2], attendance[3]])

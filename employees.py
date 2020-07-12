@@ -6,7 +6,6 @@ from attendances import Attendance
 import db_connect
 
 
-
 class Employee:
     path_employee = 'employees.csv'
     TITLES = ('Manager', 'Senior', 'Junior')
@@ -51,19 +50,12 @@ class Employee:
     # Functions related to Employee
 
     @staticmethod
-    def load_employee_dic(user_path=None, add_employee=None):
-        # Used before the class instance is formed or used as a helper for adding employees from file
+    def load_employee_dic(user_path=None):
+        # Used as a helper for adding employees from file
         while True:
             try:  # Should check if the file exists.
-                if user_path is None and add_employee is None:
-                    user_path = input("Enter the path of your file or -1 to create one: ")
-                    if user_path != Employee.path_employee:
-                        Employee.path_employee = user_path
-                elif user_path is None and add_employee:
+                if user_path is None:
                     user_path = input("Enter the path of your file: ")
-                if user_path == '-1':
-                    Employee.update_employee_file({})
-                    user_path = Employee.path_employee
                 assert os.path.exists(user_path)
             except AssertionError:
                 print("I did not find the file at: " + str(user_path))
@@ -80,7 +72,7 @@ class Employee:
                         if line_count != 0:
                             if len(row) == 4:
                                 dic[row[0]] = Employee(row[0], row[1], 'j', row[2], row[3])
-                            elif len(row):
+                            elif len(row) == 5:
                                 dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
                             else:
                                 print(f'The data in row {line_count} is partially missing.')
@@ -89,20 +81,12 @@ class Employee:
                     return dic, (line_count - 1)
 
     @staticmethod
-    def update_employee_file(dic):
-        with open(Employee.path_employee, mode='w', newline='') as employee_file:
-            employee_writer = csv.writer(employee_file, delimiter=',')
-            employee_writer.writerow(['employee id', 'name', 'title', 'phone', 'birthday'])
-            for employee in dic.values():
-                employee_writer.writerow([employee.id, employee.name, employee.title, employee.phone, employee.birthday])
-
-    @staticmethod  # db
     def enter_name():  # part of add_employee_manually
         """Lets the user enter a name, and checks it's a string of chars only."""
         while True:
             try:
                 name = str(input('Please enter your name (example: John Smith): '))
-                while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):  #[A-Z][a-zA-Z]+[ ]?[a-zA-Z]*$
+                while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):
                     if name == '' or name == ' ':
                         print('You didn\'t enter a name.')
                     elif '  ' in name:
@@ -115,7 +99,7 @@ class Employee:
             else:
                 return name
 
-    @staticmethod  # db
+    @staticmethod
     def enter_phone():  # part of add_employee_manually
         phone = input("Please enter a phone number(0xx-xxxxxxx): ")
         while not re.match('0[1-9]{1,2}-?[1-9]{7}', phone):
@@ -123,7 +107,7 @@ class Employee:
             phone = input("Please enter a phone number(0xx-xxxxxxx): ")
         return phone
 
-    @staticmethod  #db
+    @staticmethod
     def enter_birthday():  # part of add_employee_manually
         age = 0
         while True:
@@ -140,7 +124,7 @@ class Employee:
                 return birthday
         pass
 
-    @staticmethod  # DB
+    @staticmethod
     def enter_title():  # part of add_employee_manually
         title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
         while not re.match('[msj]', title):
@@ -148,11 +132,10 @@ class Employee:
             title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
         return title
 
-    @staticmethod  # DB
+    @staticmethod
     def add_employee_manually(cur):
         e_id = Attendance.enter_id()
-        check_id = db_connect.check_id_exist(cur, e_id)
-        if db_connect.check_id_exist(cur, e_id): #check_id[0] == 1:
+        if db_connect.check_id_exist(cur, e_id):
             print("The employee id %s is already listed." % e_id)
             return
         else:
@@ -165,36 +148,39 @@ class Employee:
             return
 
     @staticmethod
-    def add_employee_from_file(dic):
-        # Runs the load dictionary to load the new rows and if the file is proper adds the value to main employee file
-        new_dic, num = Employee.load_employee_dic(add_employee=True)
+    def add_employee_from_file(cur):
+        # Runs the load dictionary to load the new rows and if the file is proper adds the values to the DB
+        new_dic, num = Employee.load_employee_dic()
+        count = 0
         if num is not None and num > 0:
-            new_dic.update(dic)
-            Employee.update_employee_file(new_dic)
-            print('Employees were added.')
-        return dic
+            for employee in new_dic.values():
+                if not db_connect.check_id_exist(cur, employee.id):
+                    db_connect.add_employee(cur, employee)
+                    count += 1
+            print(f'{count} employees were added.')
+            print(f'{num - count} employees already existed in the database.')
+        return
 
     @staticmethod
-    def delete_employee_manually(dic):
+    def delete_employee_manually(cur):
         # The function allows to delete an employee by ID
         e_id = ''
         while True:
             try:
                 e_id = str(input('Please enter employee ID (123456789) to delete or -1 to exit: '))
                 if e_id == '-1':
-                    return dic
+                    return
                 if not e_id.isalnum() or len(e_id) != 9:
                     raise ValueError
-                assert dic[e_id]
+                assert db_connect.check_id_exist(cur, e_id) == 1
             except ValueError:
                 print('The ID should be an integer of 9 digits.')
             except KeyError or AssertionError:
                 print(f'There is no employee with ID {e_id}. Please try again.')
             else:
-                dic.pop(e_id)
-                Employee.update_employee_file(dic)
+                db_connect.delete_employee(cur, e_id)
                 print("Deleted an employee with id %s." % e_id)
-                return dic
+                return
 
     @staticmethod
     def load_employees_dic_to_delete():
@@ -230,21 +216,22 @@ class Employee:
                     return delete_ids_array, (line_count - 1)
 
     @staticmethod
-    def delete_employee_from_file(dic):
-        # Deletes the employees by ID from file and reflects how many were deleted.
+    def delete_employee_from_file(cur):
+        # Deletes the employees by ID from the database and reflects how many were deleted.
         # Also prompt about the IDs that didn't exist in our employee file.
         del_arr, num = Employee.load_employees_dic_to_delete()
         if num is not None and num > 0:
             non_exist = []
             for e_id in del_arr:
-                exist = dic.pop(e_id, 'no')
-                if exist == 'no':
+                if db_connect.check_id_exist(cur, e_id):
+                    db_connect.delete_employee(cur, e_id)
+                else:
                     non_exist.append(e_id)
-            if len(non_exist) == len(del_arr):
+            if len(non_exist) == num:
                 print('There were no employees with those IDs in our company.')
             elif len(non_exist) == 0:
-                print(f'Number of employees deleted: {len(del_arr)}.')
+                print(f'Number of employees deleted: {num}.')
             else:
-                print(f'Number of employees deleted: {len(del_arr) - len(non_exist)}')
+                print(f'Number of employees deleted: {num - len(non_exist)}')
                 print(f'The following employees didn\'t exist in our company: {" ,".join(non_exist)}')
-        return dic
+        return

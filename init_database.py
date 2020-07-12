@@ -15,9 +15,10 @@ def create_tables():
         )
         """,
         """ CREATE TABLE attendance (
-                employee_id CHAR(9) PRIMARY KEY,
+                employee_id CHAR(9),
                 date DATE NOT NULL,
                 time TIME NOT NULL,
+                PRIMARY KEY (date, time),
                 FOREIGN KEY (employee_id)
                     REFERENCES employees (employee_id)
                     ON UPDATE CASCADE ON DELETE CASCADE

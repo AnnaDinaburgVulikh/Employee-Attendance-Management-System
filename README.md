@@ -23,8 +23,9 @@ She Codes learning project for python course using PostgreSQL and PGadmin
 1. **Employees:**  
 
     1.1. Uses Employee class with 4 fields: 
-    - ID - 9 digits  
-    - Name - a string, can include two words.  
+    - ID - 9 digits.  
+    - Name - a string, can include two words. 
+    - Title - Manager, Senior or Junior. 
     - Phone - 9/10 digits, can include a `-` after the prefix(2/3 first digits).  
     - Birthday - uses the template dd/mm/yyyy.
     

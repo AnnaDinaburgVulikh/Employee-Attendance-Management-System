@@ -41,24 +41,21 @@ def main():  # makes the program work
                 if choice == 1:
                     Employee.add_employee_manually(cur)
                 elif choice == 2:
-                    pass    #employee_dic = Employee.add_employee_from_file(employee_dic)
+                    Employee.add_employee_from_file(cur)
                 elif choice == 3:
-                    pass    #employee_dic = Employee.delete_employee_manually(employee_dic)
+                    Employee.delete_employee_manually(cur)
                 elif choice == 4:
-                    pass    #employee_dic = Employee.delete_employee_from_file(employee_dic)
+                    Employee.delete_employee_from_file(cur)
                 elif choice == 5:
-                    pass    #Attendance.mark_attendance(employee_dic)
-                elif 6 <= choice <= 9:
-                    pass
-                    #attend_list = Attendance.load_attendance_list()
-                    # if choice == 6:
-                    #     Attendance.attendance_report_by_id(attend_list, employee_dic)
-                    # elif choice == 7:
-                    #     Attendance.report_by_month(attend_list)
-                    # elif choice == 8:
-                    #     Attendance.report_by_hour(attend_list)
-                    # else: #choice is 9
-                    #     Attendance.report_by_dates(attend_list)
+                    Attendance.mark_attendance(cur)
+                elif choice == 6:
+                    Attendance.attendance_report_by_id(cur)
+                elif choice == 7:
+                    Attendance.report_by_month(cur)
+                elif choice == 8:
+                    Attendance.report_by_hour(cur)
+                elif choice == 9:
+                    Attendance.report_by_dates(cur)
                 else:
                     print('See you next time.')
         # close communication with the PostgreSQL database server
