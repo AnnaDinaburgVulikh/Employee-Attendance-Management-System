@@ -22,23 +22,24 @@ She Codes learning project for python course using PostgreSQL and PGadmin
 #### The data structure:
 1. **Employees:**  
 
-    1.1. Uses Employee class with 4 fields: 
-    - ID - 9 digits.  
+    1.1. Uses Employees table with 4 fields: 
+    - ID - 9 digits. 
     - Name - a string, can include two words. 
     - Title - Manager, Senior or Junior. 
     - Phone - 9/10 digits, can include a `-` after the prefix(2/3 first digits).  
     - Birthday - uses the template dd/mm/yyyy.
     
-    1.2. A dictionary is built based on the Employees.csv, using ID as key and Employee class instance as value.
+    1.2. ID is key.
+    1.3. Employee class instance is used when reading from file.
+    
 2. **Attendance Log:** 
  
-    2.1. Uses Attendance class with 4 fields: 
+    2.1. Uses Attendance table with 3 fields: 
     - ID - 9 digits  
-    - Name - a string, can include two or more words.
     - Date - uses the template dd/mm/yyyy (auto update on creation)
     - Time - uses the template HH:MM (auto update on creation)
     
-    2.2. A list is built based on the Attendance_log.csv, using Attendance class instance as value.
+    2.2. Date and Time are used as key (timestamp).
 
 #### Employees related functions: 
 Each function updates employees file.  
@@ -46,13 +47,13 @@ Each function updates employees file.
 2. Add employee from file - accepts a .csv file, adds the employees only if all the rows are valid. 
 Prompts the user about the first encountered invalid row.
 3. Delete employee manually - deletes an employee by ID, prompts if the employee doesn't exist or invalid ID.
-4. Delete employees from file - accepts a .csv file, deletes the employees by ID only if all the supplied data is valid. 
+4. Delete employees from file - accepts a .csv file, deletes the employees by ID only if all the supplied data is valid (only ID's in the file). 
 Prompts the user with number of deleted users or first invalid row.
 
 #### Attendance related functions:
-5. Mark attendance - given an ID, creates a new Attendance record and updates attendance file.  
+5. Mark attendance - given an ID, creates a new Attendance record and updates the database.  
 6. Generate attendance report of an employee - user enters ID and gets his attendance report(file). 
-Prompts if the user doesn't exist or invalid or has no attendance registered.
+Prompts if the employee ID doesn't exist/invalid or has no attendance registered.
 7. Print an attendance report for a chosen month for all employees (active only) - prompts for month, 
 will use current month as default and last year, generates a file.
 8. Print an attendance report for all employees who were late (choose arrival time limit) - prompts for hour and start date, 

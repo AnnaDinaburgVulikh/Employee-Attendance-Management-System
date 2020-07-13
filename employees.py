@@ -2,12 +2,11 @@ import re
 import csv
 import datetime
 import os
-from attendances import Attendance
+import attendances
 import db_connect
 
 
 class Employee:
-    path_employee = 'employees.csv'
     TITLES = ('Manager', 'Senior', 'Junior')
 
     def __init__(self, emp_id: str, name: str, title: str, phone: str, birthday):
@@ -134,7 +133,7 @@ class Employee:
 
     @staticmethod
     def add_employee_manually(cur):
-        e_id = Attendance.enter_id()
+        e_id = attendances.enter_id()
         if db_connect.check_id_exist(cur, e_id):
             print("The employee id %s is already listed." % e_id)
             return

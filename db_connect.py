@@ -29,9 +29,9 @@ def employee_name(cur, emp_id):  # returns the name of the employee
     return cur.fetchone()
 
 
-def add_attendance(cur, attendance):  # registers the attendance time and date of the employee
+def add_attendance(cur, emp_id, date, time):  # registers the attendance time and date of the employee
     sql = '''INSERT INTO attendance VALUES (%s,%s,%s)'''
-    cur.execute(sql, (attendance.id, attendance.date, attendance.time,))
+    cur.execute(sql, (emp_id, date, time,))
 
 
 def attendance_by_id(cur, e_id):  # generates a list of tuples with the attendance log of the employee
