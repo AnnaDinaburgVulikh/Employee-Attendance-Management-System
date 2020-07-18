@@ -132,8 +132,8 @@ class Employee:
         return title
 
     @staticmethod
-    def add_employee_manually(cur):
-        e_id = attendances.enter_id()
+    def add_employee_manually(cur, e_id=None):
+        e_id = attendances.enter_id(e_id)
         if db_connect.check_id_exist(cur, e_id):
             print("The employee id %s is already listed." % e_id)
             return
