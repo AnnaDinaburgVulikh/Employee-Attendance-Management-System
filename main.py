@@ -1,4 +1,4 @@
-from employees import Employee
+#from employees import Employee
 from config import config
 import attendances
 import psycopg2
@@ -20,7 +20,7 @@ def main():  # makes the program work
 
         root.title("Employee Attendance Management System")
         w = 600
-        h = 600
+        h = 570
         sw = (root.winfo_screenwidth() - w) / 2
         sh = (root.winfo_screenheight() - h) / 2
         root.geometry('%dx%d+%d+%d' % (w, h, sw, sh))

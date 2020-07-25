@@ -2,20 +2,21 @@ import csv
 import datetime
 import db_connect
 import calendar
+from tkinter import messagebox
+from tkinter import simpledialog
 
 
 def enter_id(e_id=None):
-    while True:
-        try:
-            if e_id is None:
-                e_id = str(input('Please enter employee ID (123456789): '))
-            if not e_id.isalnum() or len(e_id) != 9:
-                raise ValueError
-        except ValueError:
-            print('The ID should be an integer of 9 digits.')
-            e_id = None
-        else:
-            return e_id
+    try:
+        if e_id is None:
+            e_id = simpledialog.askstring('Enter ID', 'Please enter employee ID (123456789): ')
+        if not e_id.isdecimal() or len(e_id) != 9:
+            raise ValueError
+    except ValueError:
+        messagebox.showwarning("Error Message", 'The ID should be an integer of 9 digits.')
+        e_id = None
+    finally:
+        return e_id
 
 
 def mark_attendance(cur, e_id=None):

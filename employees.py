@@ -2,8 +2,12 @@ import re
 import csv
 import datetime
 import os
+import GUI
 import attendances
 import db_connect
+from tkinter import *
+from tkinter import messagebox
+from tkinter import simpledialog
 
 
 class Employee:
@@ -84,26 +88,29 @@ class Employee:
         """Lets the user enter a name, and checks it's a string of chars only."""
         while True:
             try:
-                name = str(input('Please enter your name (example: John Smith): '))
+                name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
                 while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):
                     if name == '' or name == ' ':
-                        print('You didn\'t enter a name.')
+                        messagebox.showwarning('Error entering name', 'You didn\'t enter a name.')
                     elif '  ' in name:
-                        print('Only one space allowed.')
+                        messagebox.showwarning('Error entering name', 'Only one space allowed.')
                     else:
-                        print('The name should consist of letters only and include 2 consecutive letters at least.')
-                    name = str(input('Please enter your name (example: john smith): '))
+                        messagebox.showwarning('Error entering name', 'The name should consist of letters only and '
+                                                                      'include 2 consecutive letters at least.')
+                    name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
             except ValueError:
-                print('The name should consist of letters only and include 2 consecutive letters at least.')
+                messagebox.showwarning('Error entering name', 'The name should consist of letters only and include 2 '
+                                                              'consecutive letters at least.')
             else:
                 return name
 
     @staticmethod
     def enter_phone():  # part of add_employee_manually
-        phone = input("Please enter a phone number(0xx-xxxxxxx): ")
+        phone = simpledialog.askstring('Enter phone number', "Please enter a phone number(0xx-xxxxxxx): ")
         while not re.match('0[1-9]{1,2}-?[1-9]{7}', phone):
-            print("Error! Make sure you follow the template and enter numbers only.")
-            phone = input("Please enter a phone number(0xx-xxxxxxx): ")
+            messagebox.showwarning('Error entering phone ',
+                                   "Error! Make sure you follow the template and enter numbers only.")
+            phone = simpledialog.askstring('Enter phone number', "Please enter a phone number(0xx-xxxxxxx): ")
         return phone
 
     @staticmethod
@@ -111,40 +118,47 @@ class Employee:
         age = 0
         while True:
             try:
-                day, month, year = input('Please enter a birthday(dd-mm-yyyy):').split('-')
+                day, month, year = simpledialog.askstring('Enter Birthday', 'Please enter a birthday(dd-mm-yyyy):').split('-')
                 birthday = datetime.date(int(year), int(month), int(day))
                 age = datetime.date.today().year - int(year)
                 assert 15 <= age <= 99
             except ValueError:
-                print('Please enter valid integer numbers.')
+                messagebox.showwarning('Error entering birthday', 'Please enter valid integer numbers.')
             except AssertionError:
-                print('Please check the birth day. your employee is %d years old' % age)
+                messagebox.showwarning('Error entering birthday', 'Please check the birth day. your employee is %d years old' % age)
             else:
                 return birthday
         pass
 
     @staticmethod
     def enter_title():  # part of add_employee_manually
-        title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
+        title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
         while not re.match('[msj]', title):
-            print("Error! Make sure to choose from the allowed characters.")
-            title = input("Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
+            messagebox.showwarning('Error entering title', "Error! Make sure to choose from the allowed characters.")
+            title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
         return title
 
     @staticmethod
     def add_employee_manually(cur, e_id=None):
-        e_id = attendances.enter_id(e_id)
-        if db_connect.check_id_exist(cur, e_id):
-            print("The employee id %s is already listed." % e_id)
-            return
-        else:
-            name = Employee.enter_name()
-            title = Employee.enter_title()
-            phone = Employee.enter_phone()
-            birthday = Employee.enter_birthday()
-            db_connect.add_employee(cur, Employee(e_id, name, title, phone, birthday))
-            print("Added an employee with id %s." % e_id)
-            return
+        # e_id = attendances.enter_id(e_id)
+        # if e_id is None:
+        #     return
+        # if db_connect.check_id_exist(cur, e_id):
+        #     messagebox.showwarning("Error Message", "The employee id %s is already listed." % e_id)
+        #     return
+        # else:
+            #global emp_label
+        GUI.Add_emp_top_window(cur, e_id)
+        #emp_label = Label(top, text=("We are adding employee %s:" % e_id), font=16, anchor=CENTER).grid(row=0, columnspan=2,padx=5,pady=5)
+        # ?????
+        # name = Employee.enter_name()
+        # title = Employee.enter_title()
+        # phone = Employee.enter_phone()
+        # birthday = Employee.enter_birthday()
+        # # db_connect.add_employee(cur, Employee(e_id, name, title, phone, birthday))
+        #messagebox.showinfo("Employee added", "Added an employee with id %s." % e_id)
+        # top.destroy()
+        return
 
     @staticmethod
     def add_employee_from_file(cur):
