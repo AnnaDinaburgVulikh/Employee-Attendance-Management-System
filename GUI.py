@@ -6,6 +6,7 @@ import db_connect
 from tkinter import messagebox
 from tkcalendar import DateEntry
 from tkinter import ttk
+import re
 
 
 class CreateMenu:
@@ -70,6 +71,7 @@ class CreateMenu:
 
 class CreateFrames:
     def __init__(self, master, cur):
+        self.master = master
         self.top_frame = Frame(master, relief=SUNKEN, width=600, height=100, pady=3)
         self.center_frame = Frame(master, width=600, height=400, padx=3, pady=3)
         self.left_frame = Frame(self.center_frame, bg="lightblue", width=300, height=500, padx=3, pady=3)
@@ -91,15 +93,18 @@ class CreateFrames:
     def top_frame_widgets(self):
         main_title = Label(self.top_frame, text="Employee Attendance Management System", font=20, anchor=CENTER)
         self.company_employees = StringVar()
-        self.company_employees.set(self.update_emp_num())
+        self.update_emp_num()
         label_emp_num = Label(self.top_frame, textvariable=self.company_employees)
 
         main_title.grid(row=0, columnspan=3, sticky=EW, padx=10)
         label_emp_num.grid(row=1, columnspan=3, sticky=EW)
 
-    def update_emp_num(self):
+        self.master.bind('<FocusIn>', self.update_emp_num)
+
+    def update_emp_num(self, event=None):
         self.emp_num = db_connect.employees_count(self.cur)
-        return 'The company has %d employees.' % self.emp_num
+        self.company_employees.set('The company has %d employees.' % self.emp_num)
+        return
 
     def left_frame_widgets(self):
         main_title = Label(self.left_frame, text="Employee management", bg="lightblue", font=18, anchor=CENTER)
@@ -198,7 +203,7 @@ class CreateFrames:
     def add_emp(self):
         Employee.add_employee_manually(self.cur, str(self.e_id.get()))
         emp = self.emp_num
-        self.company_employees.set(self.update_emp_num())
+        self.update_emp_num()
         if emp != self.emp_num:
             self.e_id.set('')
         #
@@ -276,12 +281,11 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
         drop_title = ttk.Combobox(self.top_frame, value=Employee.TITLES, textvariable=self.title, state="readonly")
         self.prompt_title = Label(self.top_frame, text="Please choose Title to proceed.")
 
+        self.entry_birthday = DateEntry(self.top_frame, date_pattern='m/d/y')
+        self.prompt_birthday = Label(self.top_frame, text="Please enter Birth Date to proceed.")
+
         entry_phone = Entry(self.top_frame, textvariable=self.phone)
         self.prompt_phone = Label(self.top_frame, text="Please enter Phone to proceed.")
-
-        self.entry_birthday = DateEntry(self.top_frame, date_pattern='m/d/y')
-        # entry_birthday = Entry(self.top_frame, textvariable=self.birthday)
-        self.prompt_birthday = Label(self.top_frame, text="Please enter Birth Date to proceed.")
 
         self.add_button = Button(self.top_frame, text=" Add employee ", command=self.add_emp, state=DISABLED)
         self.cancel_button = Button(self.top_frame, text="   Cancel   ", command=self.top.destroy)
@@ -289,9 +293,9 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
         entry_id.bind('<KeyRelease>', self.id_input_prompt)
         entry_name.bind('<KeyRelease>', self.name_input_prompt)
         drop_title.bind('<<ComboboxSelected>>', self.title_input_prompt)
-        entry_phone.bind('<KeyRelease>', self.phone_input_prompt)
         self.entry_birthday.bind('<<DateEntrySelected>>', self.birthday_input_prompt)
         self.entry_birthday.bind('<FocusOut>', self.birthday_input_prompt)
+        entry_phone.bind('<KeyRelease>', self.phone_input_prompt)
 
         self.top_frame.grid(row=0, sticky=NS)
         main_title.grid(row=0, columnspan=2, sticky=EW, padx=45, pady=10)
@@ -304,10 +308,10 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
         self.prompt_name.grid(row=3, column=1, sticky=W)
         drop_title.grid(row=4, sticky=EW, padx=20, pady=5)
         self.prompt_title.grid(row=4, column=1, sticky=W)
-        entry_phone.grid(row=5, sticky=EW, padx=20, pady=5)
-        self.prompt_phone.grid(row=5, column=1, sticky=W)
-        self.entry_birthday.grid(row=6, sticky=EW, padx=20, pady=5)
-        self.prompt_birthday.grid(row=6, column=1, sticky=W)
+        self.entry_birthday.grid(row=5, sticky=EW, padx=20, pady=5)
+        self.prompt_birthday.grid(row=5, column=1, sticky=W)
+        entry_phone.grid(row=6, sticky=EW, padx=20, pady=5)
+        self.prompt_phone.grid(row=6, column=1, sticky=W)
         self.add_button.grid(row=7, column=0, sticky=E, padx=5, pady=10)
         self.cancel_button.grid(row=7, column=1, sticky=W, padx=5, pady=10)
 
@@ -342,17 +346,25 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
         self.can_add_amp()
 
     def name_input_prompt(self, event):
-        self.add_new[1] = 1
+        self.prompt_name.destroy()
+        if not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*$", str(self.name.get())):
+            if self.name.get() == '':
+                self.prompt_name = Label(self.top_frame, fg="black", text="Please enter Employee Name to proceed.")
+            elif '  ' in str(self.name.get()):
+                self.prompt_name = Label(self.top_frame, fg="red", text='Only one consecutive space allowed.')
+            else:
+                self.prompt_name = Label(self.top_frame, fg="red",
+                                         text='The name should consist of letters only\n and include 2 consecutive letters at least.')
+            self.prompt_name.grid(row=3, column=1, sticky=W)
+            self.add_new[1] = 0
+        else:
+            self.add_new[1] = 1
         self.can_add_amp()
 
     def title_input_prompt(self, event):
         if self.title.get() is not "":
             self.add_new[2] = 1
             self.prompt_title.destroy()
-        self.can_add_amp()
-
-    def phone_input_prompt(self, event):
-        self.add_new[3] = 1
         self.can_add_amp()
 
     def birthday_input_prompt(self, event):
@@ -363,11 +375,27 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
             if not (15 <= age <= 99):
                 self.prompt_birthday = Label(self.top_frame, fg="red",
                                              text='Please check the date. your employee is %d years old' % age)
-                self.prompt_birthday.grid(row=6, column=1, sticky=W)
-                self.add_new[4] = 0
+                self.prompt_birthday.grid(row=5, column=1, sticky=W)
+                self.add_new[3] = 0
             else:
-                self.add_new[4] = 1
+                self.add_new[3] = 1
         self.can_add_amp()
+
+    def phone_input_prompt(self, event):
+        self.prompt_phone.destroy()
+        if not re.match('0[1-9]{1,2}-?[1-9]{7}$', str(self.phone.get())):
+            if self.phone.get() == "":
+                self.prompt_phone = Label(self.top_frame, fg="black", text="Please enter Phone to proceed.")
+            else:
+                self.prompt_phone = Label(self.top_frame, fg="red",
+                                          text="Make sure you follow the template(0xx-xxxxxxx)\n and enter numbers only.")
+            self.prompt_phone.grid(row=6, column=1, sticky=W)
+            self.add_new[4] = 0
+        else:
+            self.add_new[4] = 1
+        self.can_add_amp()
+
+
 
 
 

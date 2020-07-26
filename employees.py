@@ -16,12 +16,7 @@ class Employee:
     def __init__(self, emp_id: str, name: str, title: str, phone: str, birthday):
         self.id = str(emp_id)
         self.name = name
-        if title == 'm':
-            self.title = Employee.TITLES[0]
-        elif title == 's':
-            self.title = Employee.TITLES[1]
-        else:
-            self.title = Employee.TITLES[2]
+        self.title = title
         self.phone = str(phone)
         if type(birthday) is str:
             # year, month, day = str(birthday).split('-')
@@ -74,7 +69,7 @@ class Employee:
                     for row in csv_reader:
                         if line_count != 0:
                             if len(row) == 4:
-                                dic[row[0]] = Employee(row[0], row[1], 'j', row[2], row[3])
+                                dic[row[0]] = Employee(row[0], row[1], 'Junior', row[2], row[3])
                             elif len(row) == 5:
                                 dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
                             else:
@@ -83,26 +78,26 @@ class Employee:
                         line_count += 1
                     return dic, (line_count - 1)
 
-    @staticmethod
-    def enter_name():  # part of add_employee_manually
-        """Lets the user enter a name, and checks it's a string of chars only."""
-        while True:
-            try:
-                name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
-                while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):
-                    if name == '' or name == ' ':
-                        messagebox.showwarning('Error entering name', 'You didn\'t enter a name.')
-                    elif '  ' in name:
-                        messagebox.showwarning('Error entering name', 'Only one space allowed.')
-                    else:
-                        messagebox.showwarning('Error entering name', 'The name should consist of letters only and '
-                                                                      'include 2 consecutive letters at least.')
-                    name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
-            except ValueError:
-                messagebox.showwarning('Error entering name', 'The name should consist of letters only and include 2 '
-                                                              'consecutive letters at least.')
-            else:
-                return name
+    # @staticmethod
+    # def enter_name():  # part of add_employee_manually
+    #     """Lets the user enter a name, and checks it's a string of chars only."""
+    #     while True:
+    #         try:
+    #             name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
+    #             while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):
+    #                 if name == '' or name == ' ':
+    #                     messagebox.showwarning('Error entering name', 'You didn\'t enter a name.')
+    #                 elif '  ' in name:
+    #                     messagebox.showwarning('Error entering name', 'Only one space allowed.')
+    #                 else:
+    #                     messagebox.showwarning('Error entering name', 'The name should consist of letters only and '
+    #                                                                   'include 2 consecutive letters at least.')
+    #                 name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
+    #         except ValueError:
+    #             messagebox.showwarning('Error entering name', 'The name should consist of letters only and include 2 '
+    #                                                           'consecutive letters at least.')
+    #         else:
+    #             return name
 
     @staticmethod
     def enter_phone():  # part of add_employee_manually
@@ -113,30 +108,30 @@ class Employee:
             phone = simpledialog.askstring('Enter phone number', "Please enter a phone number(0xx-xxxxxxx): ")
         return phone
 
-    @staticmethod
-    def enter_birthday():  # part of add_employee_manually
-        age = 0
-        while True:
-            try:
-                day, month, year = simpledialog.askstring('Enter Birthday', 'Please enter a birthday(dd-mm-yyyy):').split('-')
-                birthday = datetime.date(int(year), int(month), int(day))
-                age = datetime.date.today().year - int(year)
-                assert 15 <= age <= 99
-            except ValueError:
-                messagebox.showwarning('Error entering birthday', 'Please enter valid integer numbers.')
-            except AssertionError:
-                messagebox.showwarning('Error entering birthday', 'Please check the birth day. your employee is %d years old' % age)
-            else:
-                return birthday
-        pass
+    # @staticmethod
+    # def enter_birthday():  # part of add_employee_manually
+    #     age = 0
+    #     while True:
+    #         try:
+    #             day, month, year = simpledialog.askstring('Enter Birthday', 'Please enter a birthday(dd-mm-yyyy):').split('-')
+    #             birthday = datetime.date(int(year), int(month), int(day))
+    #             age = datetime.date.today().year - int(year)
+    #             assert 15 <= age <= 99
+    #         except ValueError:
+    #             messagebox.showwarning('Error entering birthday', 'Please enter valid integer numbers.')
+    #         except AssertionError:
+    #             messagebox.showwarning('Error entering birthday', 'Please check the birth day. your employee is %d years old' % age)
+    #         else:
+    #             return birthday
+    #     pass
 
-    @staticmethod
-    def enter_title():  # part of add_employee_manually
-        title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
-        while not re.match('[msj]', title):
-            messagebox.showwarning('Error entering title', "Error! Make sure to choose from the allowed characters.")
-            title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
-        return title
+    # @staticmethod
+    # def enter_title():  # part of add_employee_manually
+    #     title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
+    #     while not re.match('[msj]', title):
+    #         messagebox.showwarning('Error entering title', "Error! Make sure to choose from the allowed characters.")
+    #         title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
+    #     return title
 
     @staticmethod
     def add_employee_manually(cur, e_id=None):
