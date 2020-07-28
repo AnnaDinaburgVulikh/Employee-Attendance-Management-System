@@ -6,21 +6,11 @@ from tkinter import messagebox
 from tkinter import simpledialog
 
 
-def enter_id(e_id=None):
-    try:
-        if e_id is None:
-            e_id = simpledialog.askstring('Enter ID', 'Please enter employee ID (123456789): ')
-        if not e_id.isdecimal() or len(e_id) != 9:
-            raise ValueError
-    except ValueError:
-        messagebox.showwarning("Error Message", 'The ID should be an integer of 9 digits.')
-        e_id = None
-    finally:
-        return e_id
+
 
 
 def mark_attendance(cur, e_id=None):
-    e_id = enter_id(e_id)
+    e_id = enter_id(e_id)  # '''check the function!!! Is it needed? replaced by check_id'''
     if db_connect.check_id_exist(cur, e_id):
         now = datetime.datetime.now()
         date = now.date()
@@ -32,7 +22,7 @@ def mark_attendance(cur, e_id=None):
 
 
 def attendance_report_by_id(cur):
-    e_id = enter_id()
+    e_id = enter_id(e_id)  # '''check the function!!! Is it needed? replaced by check_id'''
     if db_connect.check_id_exist(cur, e_id):
         report = db_connect.attendance_by_id(cur, e_id)
         if len(report) == 0:

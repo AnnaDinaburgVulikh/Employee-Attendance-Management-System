@@ -78,82 +78,66 @@ class Employee:
                         line_count += 1
                     return dic, (line_count - 1)
 
-    # @staticmethod
-    # def enter_name():  # part of add_employee_manually
-    #     """Lets the user enter a name, and checks it's a string of chars only."""
-    #     while True:
-    #         try:
-    #             name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
-    #             while not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*", name):
-    #                 if name == '' or name == ' ':
-    #                     messagebox.showwarning('Error entering name', 'You didn\'t enter a name.')
-    #                 elif '  ' in name:
-    #                     messagebox.showwarning('Error entering name', 'Only one space allowed.')
-    #                 else:
-    #                     messagebox.showwarning('Error entering name', 'The name should consist of letters only and '
-    #                                                                   'include 2 consecutive letters at least.')
-    #                 name = simpledialog.askstring('Enter name', 'Please enter your name (example: John Smith): ')
-    #         except ValueError:
-    #             messagebox.showwarning('Error entering name', 'The name should consist of letters only and include 2 '
-    #                                                           'consecutive letters at least.')
-    #         else:
-    #             return name
+    @staticmethod
+    def check_id(cur=None, e_id=None):  # enter_id()
+        message = ""
+        correct = 0  # a flag for right input
+        color = ""
+        if e_id is None or len(e_id) == 0:
+            message = "Please enter ID to proceed."
+            color = "black"
+        elif not e_id.isdecimal() or (len(e_id) != 9):
+            message = "The ID should be an integer of 9 digits."
+            color = "red"
+        elif cur is not None:  # 9 digit ID
+            if db_connect.check_id_exist(cur, e_id):
+                message = "Employee name is %s." % db_connect.employee_name(cur, e_id)
+                color = "blue"
+            else:
+                message = "Let's add the employee"
+                color = "green"
+                correct = 1
+        return correct, message, color
 
     @staticmethod
-    def enter_phone():  # part of add_employee_manually
-        phone = simpledialog.askstring('Enter phone number', "Please enter a phone number(0xx-xxxxxxx): ")
-        while not re.match('0[1-9]{1,2}-?[1-9]{7}', phone):
-            messagebox.showwarning('Error entering phone ',
-                                   "Error! Make sure you follow the template and enter numbers only.")
-            phone = simpledialog.askstring('Enter phone number', "Please enter a phone number(0xx-xxxxxxx): ")
-        return phone
-
-    # @staticmethod
-    # def enter_birthday():  # part of add_employee_manually
-    #     age = 0
-    #     while True:
-    #         try:
-    #             day, month, year = simpledialog.askstring('Enter Birthday', 'Please enter a birthday(dd-mm-yyyy):').split('-')
-    #             birthday = datetime.date(int(year), int(month), int(day))
-    #             age = datetime.date.today().year - int(year)
-    #             assert 15 <= age <= 99
-    #         except ValueError:
-    #             messagebox.showwarning('Error entering birthday', 'Please enter valid integer numbers.')
-    #         except AssertionError:
-    #             messagebox.showwarning('Error entering birthday', 'Please check the birth day. your employee is %d years old' % age)
-    #         else:
-    #             return birthday
-    #     pass
-
-    # @staticmethod
-    # def enter_title():  # part of add_employee_manually
-    #     title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
-    #     while not re.match('[msj]', title):
-    #         messagebox.showwarning('Error entering title', "Error! Make sure to choose from the allowed characters.")
-    #         title = simpledialog.askstring('Enter title', "Please enter employee title('m' for Manager, 's' for Senior, 'j' for Junior): ")
-    #     return title
+    def check_name(name):  # part of add_employee_manually
+        """Recieves the user input name, and checks it's a string of chars only."""
+        message = ""
+        correct = 0
+        if not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*$", name):
+            if name == '':
+                message = "Please enter Employee Name to proceed."
+            elif '  ' in name:
+                message = 'Only one consecutive space allowed.'
+            else:
+                message = 'The name should consist of letters only\n and include 2 consecutive letters at least.'
+        else:
+            correct = 1
+        return correct, message
 
     @staticmethod
-    def add_employee_manually(cur, e_id=None):
-        # e_id = attendances.enter_id(e_id)
-        # if e_id is None:
-        #     return
-        # if db_connect.check_id_exist(cur, e_id):
-        #     messagebox.showwarning("Error Message", "The employee id %s is already listed." % e_id)
-        #     return
-        # else:
-            #global emp_label
-        GUI.Add_emp_top_window(cur, e_id)
-        #emp_label = Label(top, text=("We are adding employee %s:" % e_id), font=16, anchor=CENTER).grid(row=0, columnspan=2,padx=5,pady=5)
-        # ?????
-        # name = Employee.enter_name()
-        # title = Employee.enter_title()
-        # phone = Employee.enter_phone()
-        # birthday = Employee.enter_birthday()
-        # # db_connect.add_employee(cur, Employee(e_id, name, title, phone, birthday))
-        #messagebox.showinfo("Employee added", "Added an employee with id %s." % e_id)
-        # top.destroy()
-        return
+    def check_phone(phone: str):  # part of add_employee_manually
+        message = ""
+        correct = 0     # a flag for right input
+        if not re.match('0[1-9]{1,2}-?[1-9]{7}$', phone):
+            if phone == "":
+                message = "Please enter Phone to proceed."
+            else:
+                message = "Make sure you follow the template(0xx-xxxxxxx)\n and enter numbers only."
+        else:
+            correct = 1
+        return correct, message
+
+    @staticmethod
+    def check_birthday(birthday:datetime):  # part of add_employee_manually
+        age = datetime.date.today().year - birthday.year
+        message = ""
+        if not (15 <= age <= 99):
+            message = 'Please check the date. your employee is %d years old' % age
+            correct = 0
+        else:
+            correct = 1
+        return correct, message
 
     @staticmethod
     def add_employee_from_file(cur):

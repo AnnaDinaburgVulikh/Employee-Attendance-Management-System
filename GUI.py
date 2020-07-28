@@ -109,17 +109,18 @@ class CreateFrames:
     def left_frame_widgets(self):
         main_title = Label(self.left_frame, text="Employee management", bg="lightblue", font=18, anchor=CENTER)
         self.e_id = StringVar()
-        entry_id = Entry(self.left_frame, textvariable=self.e_id)
+        self.entry_id = Entry(self.left_frame, textvariable=self.e_id)
         self.prompt_id = Label(self.left_frame, text="Please enter ID to proceed.", bg="lightblue")
         self.add_button = Button(self.left_frame, text="  Add employee  ", command=self.add_emp, state=DISABLED)
         self.del_button = Button(self.left_frame, text="Delete employee", command=self.del_emp, state=DISABLED)
         self.mark_button = Button(self.left_frame, text="Mark attendance", command=self.mark_att, state=DISABLED)
         self.report_button = Button(self.left_frame, text=" Generate report ", command=self.att_id_report, state=DISABLED)
 
-        entry_id.bind('<KeyRelease>', self.id_input_prompt)
+        self.entry_id.bind('<KeyRelease>', self.id_input_prompt)
+        self.left_frame.bind('<FocusIn>', self.del_id_entry)
 
         main_title.grid(row=0, columnspan=2, sticky=EW, padx=45, pady=10)
-        entry_id.grid(row=2, columnspan=2, sticky=EW, padx=60, pady=5)
+        self.entry_id.grid(row=2, columnspan=2, sticky=EW, padx=60, pady=5)
         self.prompt_id.grid(row=3, columnspan=2, sticky=EW)
         self.add_button.grid(row=4, column=0, sticky=E, padx=5, pady=5)
         self.del_button.grid(row=5, column=0, sticky=E, padx=5, pady=5)
@@ -175,40 +176,28 @@ class CreateFrames:
         entry_hour.grid(row=6, column=1, sticky=W, padx=5, pady=5)
         hour_button.grid(row=6, column=2, sticky=EW, padx=5, pady=5)
 
+    def del_id_entry(self, event):  # Clears the entry after pressing one of the functions
+        self.entry_id.delete(0, END)
+        self.e_id.set("")
+
     def id_input_prompt(self, event):
         self.prompt_id.destroy()
         self.add_button['state'] = DISABLED
         self.del_button['state'] = DISABLED
         self.mark_button['state'] = DISABLED
         self.report_button['state'] = DISABLED
-        if self.e_id.get() is None or len(self.e_id.get()) == 0:
-            self.prompt_id = Label(self.left_frame, text="Please enter ID to proceed.", fg="black", bg="lightblue")
-        elif not self.e_id.get().isdecimal() or (len(self.e_id.get()) != 9):
-            self.prompt_id = Label(self.left_frame, text="The ID should be an integer of 9 digits.", fg="red", bg="lightblue")
-        else:  # 9 digit ID
-            if db_connect.check_id_exist(self.cur, self.e_id.get()):
-                self.prompt_id = Label(self.left_frame,
-                                       text="Employee name is %s." % db_connect.employee_name(self.cur, self.e_id.get()),
-                                       fg="green", bg="lightblue")
-                self.del_button['state'] = NORMAL
-                self.mark_button['state'] = NORMAL
-                self.report_button['state'] = NORMAL
-            else:
-                self.prompt_id = Label(self.left_frame,
-                                       text="There is no employee with this ID in our system.",
-                                       fg="green", bg="lightblue")
-                self.add_button['state'] = NORMAL
+        correct, message, color = Employee.check_id(self.cur, self.e_id.get())
+        self.prompt_id = Label(self.left_frame, text=message, fg=color, bg="lightblue")
         self.prompt_id.grid(row=3, columnspan=2, sticky=EW, padx=0, pady=0)
+        if color == "blue":   # There is an employee with this ID
+            self.del_button['state'] = NORMAL
+            self.mark_button['state'] = NORMAL
+            self.report_button['state'] = NORMAL
+        elif color == "green":  # There is no employee with this ID
+            self.add_button['state'] = NORMAL
 
     def add_emp(self):
-        Employee.add_employee_manually(self.cur, str(self.e_id.get()))
-        emp = self.emp_num
-        self.update_emp_num()
-        if emp != self.emp_num:
-            self.e_id.set('')
-        #
-        # self.top_frame_widgets()
-        # #self.right_frame_widgets()# doesn't update the number of employees...
+        Add_emp_top_window(self.cur, str(self.e_id.get()))
 
     def add_emp_file(self):
         Employee.add_employee_from_file(self.cur)
@@ -235,7 +224,7 @@ class CreateFrames:
         attendances.report_by_hour(self.cur)
 
 
-class Add_emp_top_window():  # Class for top window used for adding an employee
+class Add_emp_top_window:  # Class for top window used for adding an employee
     def __init__(self, cur, e_id=None):
         self.top = Toplevel()
         w = 600
@@ -329,36 +318,16 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
 
     def id_input_prompt(self, event):
         self.prompt_id.destroy()
-        self.add_new[0] = 0
-        if self.e_id.get() is None or len(self.e_id.get()) == 0:
-            self.prompt_id = Label(self.top_frame, text="Please enter ID to proceed.", fg="black")
-        elif not self.e_id.get().isdecimal() or (len(self.e_id.get()) != 9):
-            self.prompt_id = Label(self.top_frame, text="The ID should be an integer of 9 digits.", fg="red")
-        else:  # 9 digit ID
-            if db_connect.check_id_exist(self.cur, self.e_id.get()):
-                self.prompt_id = Label(self.top_frame, fg="blue",
-                                       text="Employee name is %s." % db_connect.employee_name(self.cur, self.e_id.get()))
-            else:
-                self.prompt_id = Label(self.top_frame, fg="green",
-                                       text="Let's add the employee")
-                self.add_new[0] = 1
+        self.add_new[0], message, color = Employee.check_id(self.cur, self.e_id.get())
+        self.prompt_id = Label(self.top_frame, text=message, fg=color)
         self.prompt_id.grid(row=2, column=1, sticky=W)
         self.can_add_amp()
 
     def name_input_prompt(self, event):
         self.prompt_name.destroy()
-        if not re.match("^[A-Za-z][A-Za-z'\-]+([ ][A-Za-z][A-Za-z'\-]+)*$", str(self.name.get())):
-            if self.name.get() == '':
-                self.prompt_name = Label(self.top_frame, fg="black", text="Please enter Employee Name to proceed.")
-            elif '  ' in str(self.name.get()):
-                self.prompt_name = Label(self.top_frame, fg="red", text='Only one consecutive space allowed.')
-            else:
-                self.prompt_name = Label(self.top_frame, fg="red",
-                                         text='The name should consist of letters only\n and include 2 consecutive letters at least.')
-            self.prompt_name.grid(row=3, column=1, sticky=W)
-            self.add_new[1] = 0
-        else:
-            self.add_new[1] = 1
+        self.add_new[1], message = Employee.check_name(self.name.get())
+        self.prompt_name = Label(self.top_frame, fg="red", text=message)
+        self.prompt_name.grid(row=3, column=1, sticky=W)
         self.can_add_amp()
 
     def title_input_prompt(self, event):
@@ -369,30 +338,18 @@ class Add_emp_top_window():  # Class for top window used for adding an employee
 
     def birthday_input_prompt(self, event):
         self.birthday = self.entry_birthday.get_date()
+        self.add_new[3], message = Employee.check_birthday(self.birthday)
         if self.birthday is not None:
             self.prompt_birthday.destroy()
-            age = datetime.date.today().year - self.birthday.year
-            if not (15 <= age <= 99):
-                self.prompt_birthday = Label(self.top_frame, fg="red",
-                                             text='Please check the date. your employee is %d years old' % age)
-                self.prompt_birthday.grid(row=5, column=1, sticky=W)
-                self.add_new[3] = 0
-            else:
-                self.add_new[3] = 1
+            self.prompt_birthday = Label(self.top_frame, fg="red", text=message)
+            self.prompt_birthday.grid(row=5, column=1, sticky=W)
         self.can_add_amp()
 
     def phone_input_prompt(self, event):
         self.prompt_phone.destroy()
-        if not re.match('0[1-9]{1,2}-?[1-9]{7}$', str(self.phone.get())):
-            if self.phone.get() == "":
-                self.prompt_phone = Label(self.top_frame, fg="black", text="Please enter Phone to proceed.")
-            else:
-                self.prompt_phone = Label(self.top_frame, fg="red",
-                                          text="Make sure you follow the template(0xx-xxxxxxx)\n and enter numbers only.")
-            self.prompt_phone.grid(row=6, column=1, sticky=W)
-            self.add_new[4] = 0
-        else:
-            self.add_new[4] = 1
+        self.add_new[4], message = Employee.check_phone(self.phone.get())
+        self.prompt_phone = Label(self.top_frame, fg="red", text=message)
+        self.prompt_phone.grid(row=6, column=1, sticky=W)
         self.can_add_amp()
 
 
