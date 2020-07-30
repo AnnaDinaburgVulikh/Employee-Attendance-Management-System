@@ -7,7 +7,6 @@ import attendances
 import db_connect
 from tkinter import *
 from tkinter import messagebox
-from tkinter import simpledialog
 
 
 class Employee:
@@ -154,25 +153,12 @@ class Employee:
         return
 
     @staticmethod
-    def delete_employee_manually(cur):
+    def delete_employee_manually(cur, e_id=None):
         # The function allows to delete an employee by ID
-        e_id = ''
-        while True:
-            try:
-                e_id = str(input('Please enter employee ID (123456789) to delete or -1 to exit: '))
-                if e_id == '-1':
-                    return
-                if not e_id.isalnum() or len(e_id) != 9:
-                    raise ValueError
-                assert db_connect.check_id_exist(cur, e_id) == 1
-            except ValueError:
-                print('The ID should be an integer of 9 digits.')
-            except KeyError or AssertionError:
-                print(f'There is no employee with ID {e_id}. Please try again.')
-            else:
-                db_connect.delete_employee(cur, e_id)
-                print("Deleted an employee with id %s." % e_id)
-                return
+        messagebox.askokcancel("Delete Employee", "You are going to loose all the information about employee %s.\n"
+                                                  "Do you want to proceed?" % e_id)
+        db_connect.delete_employee(cur, e_id)
+        messagebox.showinfo("Delete Employee", "Employee with ID %s was deleted." % e_id)
 
     @staticmethod
     def load_employees_dic_to_delete():

@@ -3,10 +3,11 @@ from tkinter import *
 from employees import Employee
 import attendances
 import db_connect
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from tkcalendar import DateEntry
 from tkinter import ttk
-import re
+from tkinter import simpledialog
+
 
 
 class CreateMenu:
@@ -41,23 +42,48 @@ class CreateMenu:
         self.report_menu.add_separator()
         self.report_menu.add_command(label='Late attendance by date and hour', command=self.att_by_hour)
 
-    def add_emp(self):
+    def add_emp(self):  # Done
         Add_emp_top_window(self.cur)
 
     def add_emp_file(self):
         Employee.add_employee_from_file(self.cur)
 
-    def del_emp(self, e_id=None):
-        Employee.delete_employee_manually(self.cur, e_id)
+    def check_entered_id(self, e_id):
+        correct, message, color = Employee.check_id(self.cur, e_id)
+        if color == "blue":
+            correct = 1
+        elif color == "green":
+            correct = 0
+            message = "There is no employee with ID %s" % e_id
+        elif color == "black":
+            message = "You didn't enter an ID."
+        return correct, message
+
+    def del_emp(self):
+        e_id = simpledialog.askstring("Delete Employee", "Please enter employee ID:")
+        correct, message = self.check_entered_id(e_id)
+        if correct == 1:
+            Employee.delete_employee_manually(self.cur, e_id)
+        messagebox.showinfo("Delete Employee", message)
 
     def del_emp_file(self):
         Employee.add_employee_from_file(self.cur)
 
-    def mark_att(self, e_id=None):
-        attendances.mark_attendance(self.cur, e_id)
+    def mark_att(self):  # Done
+        e_id = simpledialog.askstring("Mark Attendance", "Please enter employee ID:")
+        correct, message = self.check_entered_id(e_id)
+        if correct == 1:
+            attendances.mark_attendance(self.cur, e_id)
+        else:
+            messagebox.showinfo("Mark Attendance", message)
 
     def att_id_report(self, e_id=None):
-        attendances.attendance_report_by_id(self.cur, e_id)
+        e_id = simpledialog.askstring("Attendance Report", "Please enter employee ID:")
+        correct, message = self.check_entered_id(e_id)
+        if correct == 1:
+            attendances.attendance_report_by_id(self.cur, e_id)
+        else:
+            messagebox.showinfo("Attendance Report", message)
 
     def att_by_month(self):
         attendances.report_by_month(self.cur)
@@ -178,9 +204,9 @@ class CreateFrames:
 
     def del_id_entry(self, event):  # Clears the entry after pressing one of the functions
         self.entry_id.delete(0, END)
-        self.e_id.set("")
+        self.id_input_prompt()
 
-    def id_input_prompt(self, event):
+    def id_input_prompt(self, event=None):
         self.prompt_id.destroy()
         self.add_button['state'] = DISABLED
         self.del_button['state'] = DISABLED
@@ -196,10 +222,11 @@ class CreateFrames:
         elif color == "green":  # There is no employee with this ID
             self.add_button['state'] = NORMAL
 
-    def add_emp(self):
+    def add_emp(self):   # Done
         Add_emp_top_window(self.cur, str(self.e_id.get()))
 
     def add_emp_file(self):
+        #filedialog.LoadFileDialog()
         Employee.add_employee_from_file(self.cur)
 
     def del_emp(self):
@@ -208,7 +235,7 @@ class CreateFrames:
     def del_emp_file(self):
         Employee.add_employee_from_file(self.cur)
 
-    def mark_att(self):
+    def mark_att(self):   # Done
         attendances.mark_attendance(self.cur, self.e_id.get())
 
     def att_id_report(self):
@@ -307,7 +334,7 @@ class Add_emp_top_window:  # Class for top window used for adding an employee
     def add_emp(self):
         db_connect.add_employee(self.cur, Employee(self.e_id.get(), self.name.get(), self.title.get(),
                                                    self.phone.get(), self.birthday))
-        messagebox.showinfo("Employee added", "Added an employee with id %s." % self.e_id.get())
+        messagebox.showinfo("Employee added", "Added an employee with ID %s." % self.e_id.get())
         self.top.destroy()
 
     def can_add_amp(self):

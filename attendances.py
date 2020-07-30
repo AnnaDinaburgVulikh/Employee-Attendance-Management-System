@@ -2,36 +2,26 @@ import csv
 import datetime
 import db_connect
 import calendar
+from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import simpledialog
 
 
-
-
-
 def mark_attendance(cur, e_id=None):
-    e_id = enter_id(e_id)  # '''check the function!!! Is it needed? replaced by check_id'''
-    if db_connect.check_id_exist(cur, e_id):
-        now = datetime.datetime.now()
-        date = now.date()
-        time = now.time()
-        db_connect.add_attendance(cur, e_id, date, time)
-        print("Marked an attendance for id %s." % e_id)
-    else:
-        print('There is no employee with this ID in our company.')
+    now = datetime.datetime.now()
+    date = now.date()
+    time = now.time()
+    db_connect.add_attendance(cur, e_id, date, time)
+    messagebox.showinfo("Mark Attendance", "Marked an attendance for ID %s." % e_id)
 
 
-def attendance_report_by_id(cur):
-    e_id = enter_id(e_id)  # '''check the function!!! Is it needed? replaced by check_id'''
-    if db_connect.check_id_exist(cur, e_id):
-        report = db_connect.attendance_by_id(cur, e_id)
-        if len(report) == 0:
-            print(f'No attendance was registered for employee {e_id}.')
-        else:
-            create_report_file(f'Attendance report for employee {e_id}.csv', report)
-            print(f'Check your library for the report.')
+def attendance_report_by_id(cur, e_id=None):
+    report = db_connect.attendance_by_id(cur, e_id)
+    if len(report) == 0:
+        messagebox.showinfo('Attendance Report', f'No attendance was registered for employee {e_id}.')
     else:
-        print('There is no employee with this ID in our company.')
+        create_report_file(f'Attendance report for employee {e_id}.csv', report)
+        messagebox.showinfo('Attendance Report', f'Check your library for the report (Employee ID {e_id}).')
 
 
 def report_by_month(cur, month=None):
