@@ -49,33 +49,25 @@ class Employee:
     @staticmethod
     def load_employee_dic(user_path=None):
         # Used as a helper for adding employees from file
-        while True:
-            try:  # Should check if the file exists.
-                if user_path is None:
-                    user_path = input("Enter the path of your file: ")
-                assert os.path.exists(user_path)
-            except AssertionError:
-                print("I did not find the file at: " + str(user_path))
-                user_path = None
-            else:
-                with open(user_path, mode='r') as csv_file:
-                    dic = {}
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-                    if csv_reader is None:
-                        print('The file was empty')
-                        return dic, 0
-                    line_count = 0
-                    for row in csv_reader:
-                        if line_count != 0:
-                            if len(row) == 4:
-                                dic[row[0]] = Employee(row[0], row[1], 'Junior', row[2], row[3])
-                            elif len(row) == 5:
-                                dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
-                            else:
-                                print(f'The data in row {line_count} is partially missing.')
-                                return None, None
-                        line_count += 1
-                    return dic, (line_count - 1)
+        with open(user_path, mode='r') as csv_file:
+            dic = {}
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            if csv_reader is None:
+                messagebox.showwarning("Add Employees by File", 'The file was empty')
+                return dic, 0
+            line_count = 0
+            for row in csv_reader:
+                if line_count != 0:
+                    if len(row) == 4:
+                        dic[row[0]] = Employee(row[0], row[1], 'Junior', row[2], row[3])
+                    elif len(row) == 5:
+                        dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
+                    else:
+                        messagebox.showwarning("Add Employees by File",
+                                               f'The data in row {line_count} is partially missing.')
+                        return None, None
+                line_count += 1
+            return dic, (line_count - 1)
 
     @staticmethod
     def check_id(cur=None, e_id=None):  # enter_id()
@@ -139,17 +131,17 @@ class Employee:
         return correct, message
 
     @staticmethod
-    def add_employee_from_file(cur):
+    def add_employee_from_file(cur, file_path):
         # Runs the load dictionary to load the new rows and if the file is proper adds the values to the DB
-        new_dic, num = Employee.load_employee_dic()
+        new_dic, num = Employee.load_employee_dic(file_path)
         count = 0
         if num is not None and num > 0:
             for employee in new_dic.values():
                 if not db_connect.check_id_exist(cur, employee.id):
                     db_connect.add_employee(cur, employee)
                     count += 1
-            print(f'{count} employees were added.')
-            print(f'{num - count} employees already existed in the database.')
+            messagebox.showinfo("Add Employees by File", f'{count} employees were added.\n'
+                                                         f'{num - count} employees already existed in the database.')
         return
 
     @staticmethod
@@ -161,43 +153,35 @@ class Employee:
         messagebox.showinfo("Delete Employee", "Employee with ID %s was deleted." % e_id)
 
     @staticmethod
-    def load_employees_dic_to_delete():
+    def load_employees_dic_to_delete(user_path):
         # Helper function, reads the IDs and makes sure that the IDs are valid
-        user_path = ''
-        while True:
-            try:  # Should check if the file exists.
-                user_path = input("Enter the path of your file: ")
-                assert os.path.exists(user_path)
-            except AssertionError:
-                print("I did not find the file at: " + str(user_path))
-            else:
-                with open(user_path, mode='r') as csv_file:
-                    delete_ids_array = []
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-                    if csv_reader is None:
-                        print('The file was empty')
-                        return delete_ids_array, 0
-                    line_count = 0
-                    for row in csv_reader:
-                        if line_count != 0:
-                            if len(row) == 1:
-                                e_id = str(row[0])
-                                if e_id.isalnum() and len(e_id) == 9:
-                                    delete_ids_array.append(e_id)
-                                else:
-                                    print(f'The data in row {line_count} is partially missing.')
-                                    return None, None
-                            else:
-                                print(f'There is extra data in row {line_count}.')
-                                return None, None
-                        line_count += 1
-                    return delete_ids_array, (line_count - 1)
+        with open(user_path, mode='r') as csv_file:
+            delete_ids_array = []
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            if csv_reader is None:
+                messagebox.showwarning("Delete Employees by File", 'The file was empty')
+                return delete_ids_array, 0
+            line_count = 0
+            for row in csv_reader:
+                if line_count != 0:
+                    if len(row) == 1:
+                        e_id = str(row[0])
+                        if e_id.isdecimal() and len(e_id) == 9:
+                            delete_ids_array.append(e_id)
+                        else:
+                            messagebox.showwarning("Delete Employees by File", f'The data in row {line_count} is partially missing.')
+                            return None, None
+                    else:
+                        messagebox.showwarning("Delete Employees by File", f'There is extra data in row {line_count}.')
+                        return None, None
+                line_count += 1
+            return delete_ids_array, (line_count - 1)
 
     @staticmethod
-    def delete_employee_from_file(cur):
+    def delete_employee_from_file(cur, file_path):
         # Deletes the employees by ID from the database and reflects how many were deleted.
         # Also prompt about the IDs that didn't exist in our employee file.
-        del_arr, num = Employee.load_employees_dic_to_delete()
+        del_arr, num = Employee.load_employees_dic_to_delete(file_path)
         if num is not None and num > 0:
             non_exist = []
             for e_id in del_arr:
@@ -206,10 +190,11 @@ class Employee:
                 else:
                     non_exist.append(e_id)
             if len(non_exist) == num:
-                print('There were no employees with those IDs in our company.')
+                messagebox.showinfo("Delete Employees by File", 'There were no employees with those IDs in our company.')
             elif len(non_exist) == 0:
-                print(f'Number of employees deleted: {num}.')
+                messagebox.showinfo("Delete Employees by File", f'Number of employees deleted: {num}.')
             else:
-                print(f'Number of employees deleted: {num - len(non_exist)}')
-                print(f'The following employees didn\'t exist in our company: {" ,".join(non_exist)}')
+                messagebox.showinfo("Delete Employees by File", f'Number of employees deleted: {num - len(non_exist)}\n'
+                                                                f'The following employees didn\'t exist in our company:\n'
+                                                                f' {" ,".join(non_exist)}')
         return

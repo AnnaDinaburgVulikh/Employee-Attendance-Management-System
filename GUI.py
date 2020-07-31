@@ -46,7 +46,7 @@ class CreateMenu:
         Add_emp_top_window(self.cur)
 
     def add_emp_file(self):
-        Employee.add_employee_from_file(self.cur)
+        add_or_del_emp_file(self.cur, 1)
 
     def check_entered_id(self, e_id):
         correct, message, color = Employee.check_id(self.cur, e_id)
@@ -67,7 +67,7 @@ class CreateMenu:
         messagebox.showinfo("Delete Employee", message)
 
     def del_emp_file(self):
-        Employee.add_employee_from_file(self.cur)
+        add_or_del_emp_file(self.cur, 0)
 
     def mark_att(self):  # Done
         e_id = simpledialog.askstring("Mark Attendance", "Please enter employee ID:")
@@ -155,15 +155,13 @@ class CreateFrames:
 
     def right_frame_widgets(self):
         title = Label(self.right_frame, text="Multiple Employees", bg="lightgray", font=18, anchor=CENTER)
-        entry_label1 = Label(self.right_frame, text="Please enter file path to proceed:", bg="lightgray")
-        self.file_path = StringVar()
-        entry_path = Entry(self.right_frame, textvariable=self.file_path)
+        entry_label1 = Label(self.right_frame, text="You can add/delete multiple employees\n by providing a file.\n "
+                                                    "Please choose the desired action:", bg="lightgray")
         add_button = Button(self.right_frame, text="  Add employees  ", command=self.add_emp_file)
         del_button = Button(self.right_frame, text="Delete employees", command=self.del_emp_file)
 
         title.grid(row=0, columnspan=2, sticky=EW, padx=60, pady=10)
-        entry_label1.grid(row=1, columnspan=2, sticky=EW, pady=5)
-        entry_path.grid(row=2, columnspan=2, sticky=EW, padx=60, pady=5)
+        entry_label1.grid(row=1, columnspan=2, sticky=EW)
         add_button.grid(row=3, columnspan=2, sticky=EW, padx=60, pady=5)
         del_button.grid(row=4, columnspan=2, sticky=EW, padx=60, pady=5)
 
@@ -226,14 +224,13 @@ class CreateFrames:
         Add_emp_top_window(self.cur, str(self.e_id.get()))
 
     def add_emp_file(self):
-        #filedialog.LoadFileDialog()
-        Employee.add_employee_from_file(self.cur)
+        add_or_del_emp_file(self.cur, 1)
 
     def del_emp(self):
         Employee.delete_employee_manually(self.cur, self.e_id.get())
 
     def del_emp_file(self):
-        Employee.add_employee_from_file(self.cur)
+        add_or_del_emp_file(self.cur, 0)
 
     def mark_att(self):   # Done
         attendances.mark_attendance(self.cur, self.e_id.get())
@@ -380,6 +377,19 @@ class Add_emp_top_window:  # Class for top window used for adding an employee
         self.can_add_amp()
 
 
+def add_or_del_emp_file(cur, add_emp):
+    file_path = filedialog.askopenfilename()
+    if len(file_path) > 1:
+        if add_emp == 1:
+            Employee.add_employee_from_file(cur, file_path)
+        else:
+            Employee.delete_employee_from_file(cur, file_path)
+    else:
+        if add_emp == 1:
+            title = "Add Employees by File"
+        else:
+            title = "Delete Employees by File"
+        messagebox.showwarning(title, "No file was selected.")
 
 
 
