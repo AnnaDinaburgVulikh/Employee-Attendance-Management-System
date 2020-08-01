@@ -18,9 +18,7 @@ class Employee:
         self.title = title
         self.phone = str(phone)
         if type(birthday) is str:
-            # year, month, day = str(birthday).split('-')
-            # birthday = datetime.date(int(year), int(month), int(day))
-            birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d").date()
+            birthday = datetime.datetime.strptime(birthday, "%d-%m-%Y").date()
         self.birthday = birthday
 
         self._age = None
@@ -57,14 +55,30 @@ class Employee:
                 return dic, 0
             line_count = 0
             for row in csv_reader:
-                if line_count != 0:
-                    if len(row) == 4:
-                        dic[row[0]] = Employee(row[0], row[1], 'Junior', row[2], row[3])
-                    elif len(row) == 5:
-                        dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
+                if line_count != 0 and len(row) == 5:
+                    message = ""
+                    if not(row[0].isdecimal() and len(row[0])):
+                        message += 'The ID should include 9 digits\n'
+                    name = Employee.check_name(row[1])
+                    message += name[1] + '\n'
+                    if not (row[2] in Employee.TITLES):
+                        message += f'The title should be one of: {Employee.TITLES}' + '\n'
+                    phone = Employee.check_phone(row[3])
+                    birthday = Employee.check_birthday(row[4])
+                    message += phone[1] + '\n' + birthday[1]
+                    if len(message) > 3:
+                        messagebox.showwarning("Add Employees by File", f'The data in row {line_count} does not' +
+                                               '\ncorrespond to the requirements:\n' + message)
+                        return None, None
                     else:
+                        dic[row[0]] = Employee(row[0], row[1], row[2], row[3], row[4])
+                else:
+                    if line_count > 0:
                         messagebox.showwarning("Add Employees by File",
-                                               f'The data in row {line_count} is partially missing.')
+                                               f'The data in row {line_count} doesn\'t' +
+                                               '\ncorrespond to the requirement.\n'
+                                               'Make sure to include:\n'
+                                               'ID, name, title, phone and birthday.')
                         return None, None
                 line_count += 1
             return dic, (line_count - 1)
@@ -72,7 +86,7 @@ class Employee:
     @staticmethod
     def check_id(cur=None, e_id=None):  # enter_id()
         message = ""
-        correct = 0  # a flag for right input
+        new_id = 0  # a flag for right input
         color = ""
         if e_id is None or len(e_id) == 0:
             message = "Please enter ID to proceed."
@@ -87,8 +101,8 @@ class Employee:
             else:
                 message = "Let's add the employee"
                 color = "green"
-                correct = 1
-        return correct, message, color
+                new_id = 1
+        return new_id, message, color
 
     @staticmethod
     def check_name(name):  # part of add_employee_manually
@@ -120,14 +134,22 @@ class Employee:
         return correct, message
 
     @staticmethod
-    def check_birthday(birthday:datetime):  # part of add_employee_manually
-        age = datetime.date.today().year - birthday.year
+    def check_birthday(birthday):  # part of add_employee_manually
         message = ""
-        if not (15 <= age <= 99):
-            message = 'Please check the date. your employee is %d years old' % age
+        try:
+            if type(birthday) is str:
+                birthday = datetime.datetime.strptime(birthday, "%d-%m-%Y").date()
+        except Exception as ex:
+            print(ex)
+            message = 'The date should be in the format dd-mm-yyyy'
             correct = 0
         else:
-            correct = 1
+            age = datetime.date.today().year - birthday.year
+            if not (15 <= age <= 99):
+                message = 'Please check the date. your employee is %d years old' % age
+                correct = 0
+            else:
+                correct = 1
         return correct, message
 
     @staticmethod
@@ -140,8 +162,9 @@ class Employee:
                 if not db_connect.check_id_exist(cur, employee.id):
                     db_connect.add_employee(cur, employee)
                     count += 1
-            messagebox.showinfo("Add Employees by File", f'{count} employees were added.\n'
-                                                         f'{num - count} employees already existed in the database.')
+            if num > count:
+                message = '\nNumber of employees that already\n' + f' existed in the database: {num - count}.'
+            messagebox.showinfo("Add Employees by File", f'Number of added employees: {count}.' + message)
         return
 
     @staticmethod
@@ -169,7 +192,8 @@ class Employee:
                         if e_id.isdecimal() and len(e_id) == 9:
                             delete_ids_array.append(e_id)
                         else:
-                            messagebox.showwarning("Delete Employees by File", f'The data in row {line_count} is partially missing.')
+                            messagebox.showwarning("Delete Employees by File", f'The data in row {line_count}' +
+                                                   '\n doesn\'t correspond to an ID.')
                             return None, None
                     else:
                         messagebox.showwarning("Delete Employees by File", f'There is extra data in row {line_count}.')
@@ -194,7 +218,8 @@ class Employee:
             elif len(non_exist) == 0:
                 messagebox.showinfo("Delete Employees by File", f'Number of employees deleted: {num}.')
             else:
-                messagebox.showinfo("Delete Employees by File", f'Number of employees deleted: {num - len(non_exist)}\n'
-                                                                f'The following employees didn\'t exist in our company:\n'
-                                                                f' {" ,".join(non_exist)}')
+                messagebox.showinfo("Delete Employees by File", f'Number of employees deleted: {num - len(non_exist)}' +
+                                                                '\n The following employees didn\'t'
+                                                                ' exist in our company:\n'
+                                                                + '%s' % ',\n'.join(non_exist))
         return

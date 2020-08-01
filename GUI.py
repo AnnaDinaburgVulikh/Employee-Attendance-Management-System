@@ -49,15 +49,15 @@ class CreateMenu:
         add_or_del_emp_file(self.cur, 1)
 
     def check_entered_id(self, e_id):
-        correct, message, color = Employee.check_id(self.cur, e_id)
+        id_exists, message, color = Employee.check_id(self.cur, e_id)
         if color == "blue":
-            correct = 1
+            id_exists = 1
         elif color == "green":
-            correct = 0
+            id_exists = 0
             message = "There is no employee with ID %s" % e_id
         elif color == "black":
             message = "You didn't enter an ID."
-        return correct, message
+        return id_exists, message
 
     def del_emp(self):
         e_id = simpledialog.askstring("Delete Employee", "Please enter employee ID:")
@@ -86,7 +86,12 @@ class CreateMenu:
             messagebox.showinfo("Attendance Report", message)
 
     def att_by_month(self):
-        attendances.report_by_month(self.cur)
+        month = simpledialog.askstring("Attendance report by month", "Please enter a month (1-12):")
+        test = month_check(month)
+        if test:
+            attendances.report_by_month(self.cur, int(month))
+        else:
+            messagebox.showwarning("Attendance report by month", "You should choose a month using 1-12 numbers.")
 
     def att_by_date(self):
         attendances.report_by_dates(self.cur)
@@ -116,6 +121,8 @@ class CreateFrames:
         self.right_frame_widgets()
         self.bottom_frame_widgets()
 
+        self.master.bind('<FocusIn>', self.del_entry)
+
     def top_frame_widgets(self):
         main_title = Label(self.top_frame, text="Employee Attendance Management System", font=20, anchor=CENTER)
         self.company_employees = StringVar()
@@ -143,7 +150,6 @@ class CreateFrames:
         self.report_button = Button(self.left_frame, text=" Generate report ", command=self.att_id_report, state=DISABLED)
 
         self.entry_id.bind('<KeyRelease>', self.id_input_prompt)
-        self.left_frame.bind('<FocusIn>', self.del_id_entry)
 
         main_title.grid(row=0, columnspan=2, sticky=EW, padx=45, pady=10)
         self.entry_id.grid(row=2, columnspan=2, sticky=EW, padx=60, pady=5)
@@ -167,10 +173,10 @@ class CreateFrames:
 
     def bottom_frame_widgets(self):
         title = Label(self.bottom_frame, text="Attendance Reports", font=18, anchor=CENTER)
-        entry_label_month = Label(self.bottom_frame, text="Please enter month: ")
+        entry_label_month = Label(self.bottom_frame, text="Please enter a month (1-12): ")
         self.month = StringVar()
-        entry_month = Entry(self.bottom_frame, textvariable=self.month)
-        month_button = Button(self.bottom_frame, text="Generate monthly\n report ", command=self.att_by_month)
+        self.entry_month = Entry(self.bottom_frame, textvariable=self.month)
+        self.month_button = Button(self.bottom_frame, text="Generate monthly\n report ", command=self.att_by_month, state=DISABLED)
         line_label = Label(self.bottom_frame, text="--------------------------------------------------------------")
         entry_label_start_date = Label(self.bottom_frame, text="Please enter start date: ")
         self.start_date = StringVar()
@@ -185,10 +191,12 @@ class CreateFrames:
         entry_hour = Entry(self.bottom_frame, textvariable=self.hour)
         hour_button = Button(self.bottom_frame, text="Generate report by\n hour and date", command=self.att_by_hour)
 
+        self.entry_month.bind('<KeyRelease>', self.month_prompt)
+
         title.grid(row=0, columnspan=3, sticky=EW, padx=40, pady=10)
         entry_label_month.grid(row=1, columnspan=1, sticky=E, padx=5, pady=5)
-        entry_month.grid(row=1, column=1, columnspan=1, sticky=W, padx=5, pady=5)
-        month_button.grid(row=1, column=2, sticky=EW, padx=5, pady=5)
+        self.entry_month.grid(row=1, column=1, columnspan=1, sticky=W, padx=5, pady=5)
+        self.month_button.grid(row=1, column=2, sticky=EW, padx=5, pady=5)
         line_label.grid(row=2, columnspan=3, sticky=EW, padx=30, pady=10)
         entry_label_start_date.grid(row=3, sticky=E, padx=5, pady=5)
         entry_start_date.grid(row=3, column=1, sticky=W, padx=5, pady=5)
@@ -200,9 +208,11 @@ class CreateFrames:
         entry_hour.grid(row=6, column=1, sticky=W, padx=5, pady=5)
         hour_button.grid(row=6, column=2, sticky=EW, padx=5, pady=5)
 
-    def del_id_entry(self, event):  # Clears the entry after pressing one of the functions
+    def del_entry(self, event):  # Clears the entry after pressing one of the functions
         self.entry_id.delete(0, END)
         self.id_input_prompt()
+        self.entry_month.delete(0, END)
+        self.month_prompt()
 
     def id_input_prompt(self, event=None):
         self.prompt_id.destroy()
@@ -210,7 +220,7 @@ class CreateFrames:
         self.del_button['state'] = DISABLED
         self.mark_button['state'] = DISABLED
         self.report_button['state'] = DISABLED
-        correct, message, color = Employee.check_id(self.cur, self.e_id.get())
+        new_id, message, color = Employee.check_id(self.cur, self.e_id.get())
         self.prompt_id = Label(self.left_frame, text=message, fg=color, bg="lightblue")
         self.prompt_id.grid(row=3, columnspan=2, sticky=EW, padx=0, pady=0)
         if color == "blue":   # There is an employee with this ID
@@ -238,14 +248,21 @@ class CreateFrames:
     def att_id_report(self):
         attendances.attendance_report_by_id(self.cur, self.e_id.get())
 
+    def month_prompt(self, event=None):
+        test = month_check(self.month.get())
+        if test:
+            self.month_button['state'] = NORMAL
+        else:
+            self.month_button['state'] = DISABLED
+
     def att_by_month(self):
-        attendances.report_by_month(self.cur)
+        attendances.report_by_month(self.cur, int(self.month.get()))
 
     def att_by_date(self):
-        attendances.report_by_dates(self.cur)
+        attendances.report_by_dates(self.cur, self.start_date.get(), self.end_date.get())
 
     def att_by_hour(self):
-        attendances.report_by_hour(self.cur)
+        attendances.report_by_hour(self.cur, self.start_date.get(), self.hour.get())
 
 
 class Add_emp_top_window:  # Class for top window used for adding an employee
@@ -391,6 +408,12 @@ def add_or_del_emp_file(cur, add_emp):
             title = "Delete Employees by File"
         messagebox.showwarning(title, "No file was selected.")
 
+def month_check(month_input):
+    legal_month = 0
+    if month_input.isdecimal():
+        if 1 <= int(month_input) <= 12:
+            legal_month = 1
+    return legal_month
 
 
 

@@ -23,32 +23,20 @@ def attendance_report_by_id(cur, e_id=None):
         create_report_file(f'Attendance report for employee {e_id}.csv', report)
         messagebox.showinfo('Attendance Report', f'Check your library for the report (Employee ID {e_id}).')
 
-
-def report_by_month(cur, month=None):
+def report_by_month(cur, month: int):
     now = datetime.datetime.now()
     cur_month = now.month
     cur_year = now.year
-    while month is None:
-        try:
-            month = int(input('Please enter the month for the report or -1 for current month: '))
-            if month == -1:
-                month = cur_month
-            elif not 1 <= month <= 12:
-                raise ValueError
-            else:
-                if month > cur_month:
-                    cur_year -= 1
-        except ValueError:
-            print('The month should be an number between 1 and 12.')
-            month = None
+    if month > cur_month:
+        cur_year -= 1
     start_date = datetime.date(cur_year, month, 1)
     end_date = datetime.date(cur_year, month, calendar.monthrange(cur_year, month)[1])
     report = db_connect.attendance_by_date(cur, start_date, end_date)
     if len(report) == 0:
-        print(f'No attendance was registered for {month}-{cur_year}.')
+        messagebox.showinfo("Attendance report by month", f'No attendance was registered for {month}-{cur_year}.')
     else:
         create_report_file(f'Attendance report for {month}-{cur_year}.csv', report)
-        print(f'Check your library for the report.')
+        messagebox.showinfo("Attendance report by month", 'Check your library for the report.')
 
 
 def report_by_hour(cur, hour=None):
