@@ -173,46 +173,66 @@ class CreateFrames:
 
     def bottom_frame_widgets(self):
         title = Label(self.bottom_frame, text="Attendance Reports", font=18, anchor=CENTER)
-        entry_label_month = Label(self.bottom_frame, text="Please enter a month (1-12): ")
+        clear_button = Button(self.bottom_frame, text="Clear", command=self.del_entry)
+        entry_label_month = Label(self.bottom_frame, text="Please enter \na month (1-12): ")
         self.month = StringVar()
         self.entry_month = Entry(self.bottom_frame, textvariable=self.month)
         self.month_button = Button(self.bottom_frame, text="Generate monthly\n report ", command=self.att_by_month, state=DISABLED)
         line_label = Label(self.bottom_frame, text="--------------------------------------------------------------")
-        entry_label_start_date = Label(self.bottom_frame, text="Please enter start date: ")
-        self.start_date = StringVar()
-        entry_start_date = Entry(self.bottom_frame, textvariable=self.start_date)
+        self.entry_label_start_date = Label(self.bottom_frame, text="Please enter \nstart date: ")
+        self.start_date = DateEntry(self.bottom_frame, date_pattern='d/m/y')
+        self.prompt_start_date = Label(self.bottom_frame, text="")
         entry_label_end_date = Label(self.bottom_frame, text="End date: ")
-        self.end_date = StringVar()
-        entry_end_date = Entry(self.bottom_frame, textvariable=self.end_date)
-        dates_button = Button(self.bottom_frame, text="Generate report\n by dates", command=self.att_by_date)
-        or_label = Label(self.bottom_frame, text="  or      ")
-        entry_label_hour = Label(self.bottom_frame, text="Hour: ")
+        self.end_date = DateEntry(self.bottom_frame, date_pattern='d/m/y')
+        self.dates_button = Button(self.bottom_frame, text="Generate report\n by dates", command=self.att_by_date, state=DISABLED)
+        or_label = Label(self.bottom_frame, text="  or        ")
+        entry_label_hour = Label(self.bottom_frame, text="Hour:\n(hh:mm)")
         self.hour = StringVar()
-        entry_hour = Entry(self.bottom_frame, textvariable=self.hour)
-        hour_button = Button(self.bottom_frame, text="Generate report by\n hour and date", command=self.att_by_hour)
+        self.entry_hour = Entry(self.bottom_frame, textvariable=self.hour)
+        self.hour_button = Button(self.bottom_frame, text="Generate report by\n hour and date", command=self.att_by_hour, state=DISABLED)
+        self.prompt_reports = Label(self.bottom_frame, text="")
+
 
         self.entry_month.bind('<KeyRelease>', self.month_prompt)
+        self.start_date.bind('<<DateEntrySelected>>', self.start_date_input_prompt)
+        self.start_date.bind('<FocusOut>', self.start_date_input_prompt)
+        self.end_date.bind('<<DateEntrySelected>>', self.end_date_input_prompt)
+        self.end_date.bind('<FocusOut>', self.end_date_input_prompt)
+        self.entry_hour.bind('<KeyRelease>', self.hour_prompt)
 
-        title.grid(row=0, columnspan=3, sticky=EW, padx=40, pady=10)
-        entry_label_month.grid(row=1, columnspan=1, sticky=E, padx=5, pady=5)
-        self.entry_month.grid(row=1, column=1, columnspan=1, sticky=W, padx=5, pady=5)
-        self.month_button.grid(row=1, column=2, sticky=EW, padx=5, pady=5)
-        line_label.grid(row=2, columnspan=3, sticky=EW, padx=30, pady=10)
-        entry_label_start_date.grid(row=3, sticky=E, padx=5, pady=5)
-        entry_start_date.grid(row=3, column=1, sticky=W, padx=5, pady=5)
-        entry_label_end_date.grid(row=4, column=0, sticky=E, padx=5, pady=5)
-        entry_end_date.grid(row=4, column=1, sticky=W, padx=5, pady=5)
-        dates_button.grid(row=4, column=2, sticky=EW, padx=5, pady=5)
-        or_label.grid(row=5, column=0, sticky=E, padx=0, pady=0)
-        entry_label_hour.grid(row=6, column=0, sticky=E, padx=5, pady=5)
-        entry_hour.grid(row=6, column=1, sticky=W, padx=5, pady=5)
-        hour_button.grid(row=6, column=2, sticky=EW, padx=5, pady=5)
 
-    def del_entry(self, event):  # Clears the entry after pressing one of the functions
+        self.generate_report = [0,0,0]
+
+        title.grid(row=0, column=1, columnspan=3, sticky=EW, padx=40, pady=10)
+        clear_button.grid(row=0, column=4, sticky=EW, padx=5, pady=10)
+        entry_label_month.grid(row=1, column=1, columnspan=1, sticky=E, padx=5, pady=5)
+        self.entry_month.grid(row=1, column=2, columnspan=1, sticky=W, padx=5, pady=5)
+        self.month_button.grid(row=1, column=3, sticky=EW, padx=5, pady=5)
+        line_label.grid(row=2, columnspan=5, sticky=EW, padx=30, pady=10)
+        self.entry_label_start_date.grid(row=3, column=1, sticky=E, padx=5, pady=5)
+        self.start_date.grid(row=3, column=2, sticky=EW, padx=5, pady=10)
+        self.prompt_start_date.grid(row=3, column=3, sticky=W, padx=5, pady=5)
+        entry_label_end_date.grid(row=4, column=1, sticky=E, padx=5, pady=5)
+        self.end_date.grid(row=4, column=2, sticky=EW, padx=5, pady=5)
+        self.dates_button.grid(row=4, column=3, sticky=EW, padx=5, pady=5)
+        or_label.grid(row=5, column=1, sticky=E, padx=0, pady=8)
+        self.prompt_reports.grid(row=5, column=2, padx=0, pady=0, sticky=EW)
+        entry_label_hour.grid(row=6, column=1, sticky=E, padx=5, pady=5)
+        self.entry_hour.grid(row=6, column=2, sticky=W, padx=5, pady=5)
+        self.hour_button.grid(row=6, column=3, sticky=EW, padx=5, pady=5)
+
+    def del_entry(self, event=None):  # Clears the entry after pressing one of the functions
         self.entry_id.delete(0, END)
         self.id_input_prompt()
         self.entry_month.delete(0, END)
         self.month_prompt()
+        if event is None:
+            self.start_date.set_date(datetime.datetime.now().date())
+            self.end_date.set_date(datetime.datetime.now().date())
+            self.generate_report = [0,0,0]
+            self.check_report()
+            self.prompt_reports.destroy()
+            self.entry_hour.delete(0, END)
 
     def id_input_prompt(self, event=None):
         self.prompt_id.destroy()
@@ -258,8 +278,53 @@ class CreateFrames:
     def att_by_month(self):
         attendances.report_by_month(self.cur, int(self.month.get()))
 
+    def start_date_input_prompt(self, event=None):
+        self.prompt_start_date.destroy()
+        message = ""
+        if self.start_date.get_date() <= datetime.datetime.now().date():
+            self.generate_report[0] = 1
+        else:
+            self.generate_report[0] = 0
+            message = "Make sure you \nchoose past date."
+        self.prompt_start_date = Label(self.bottom_frame, text=message, fg="red")
+        self.prompt_start_date.grid(row=3, column=3, sticky=W, padx=5)
+        self.check_report()
+
+    def end_date_input_prompt(self, event=None):
+        self.prompt_reports.destroy()
+        message = ""
+        if self.start_date.get_date() <= self.end_date.get_date() <= datetime.datetime.now().date():
+            self.generate_report[1] = 1
+        else:
+            self.generate_report[1] = 0
+            message = "Make sure you choose a past date \ngreater than start date."
+        self.prompt_reports = Label(self.bottom_frame, text=message, fg="red")
+        self.prompt_reports.grid(row=5, column=2, columnspan=2, sticky=W, padx=5)
+        self.check_report()
+
+    def check_report(self):
+        if self.generate_report[0] == 1:
+            if self.generate_report[1] == 1:
+                self.dates_button['state'] = NORMAL
+            if self.generate_report[2] == 1:
+                self.hour_button['state'] = NORMAL
+        else:
+            self.dates_button['state'] = DISABLED
+            self.hour_button['state'] = DISABLED
+
     def att_by_date(self):
         attendances.report_by_dates(self.cur, self.start_date.get(), self.end_date.get())
+        self.start_date.delete(0, END)
+        self.end_date.delete(0, END)
+
+    def hour_prompt(self, event=None):
+        self.prompt_reports.destroy()
+        test, message = hour_check(self.hour.get())
+        self.generate_report[2] = test
+        if len(message) > 2:
+            self.prompt_reports = Label(self.bottom_frame, text=message, fg="red")
+            self.prompt_reports.grid(row=5, column=2, columnspan=2, sticky=W, padx=5)
+        self.check_report()
 
     def att_by_hour(self):
         attendances.report_by_hour(self.cur, self.start_date.get(), self.hour.get())
@@ -311,7 +376,7 @@ class Add_emp_top_window:  # Class for top window used for adding an employee
         drop_title = ttk.Combobox(self.top_frame, value=Employee.TITLES, textvariable=self.title, state="readonly")
         self.prompt_title = Label(self.top_frame, text="Please choose Title to proceed.")
 
-        self.entry_birthday = DateEntry(self.top_frame, date_pattern='m/d/y')
+        self.entry_birthday = DateEntry(self.top_frame, date_pattern='d/m/y')
         self.prompt_birthday = Label(self.top_frame, text="Please enter Birth Date to proceed.")
 
         entry_phone = Entry(self.top_frame, textvariable=self.phone)
@@ -408,6 +473,7 @@ def add_or_del_emp_file(cur, add_emp):
             title = "Delete Employees by File"
         messagebox.showwarning(title, "No file was selected.")
 
+
 def month_check(month_input):
     legal_month = 0
     if month_input.isdecimal():
@@ -415,5 +481,20 @@ def month_check(month_input):
             legal_month = 1
     return legal_month
 
+
+def hour_check(hour_input):
+    legal_time = 0
+    message = ""
+    if len(hour_input) > 0:
+        try:
+            hour = datetime.datetime.strptime(hour_input, "%H:%M").time()
+            assert datetime.time(6, 0) <= hour <= datetime.time(19, 00)
+        except ValueError:
+            message = 'The time should be in the format HH:MM.'
+        except AssertionError:
+            message = 'Please enter a valid work time,\n between 6am and 7pm.'
+        else:
+            legal_time = 1
+    return legal_time, message
 
 

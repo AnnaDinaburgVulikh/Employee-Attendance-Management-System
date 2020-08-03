@@ -16,7 +16,12 @@ class Employee:
         self.id = str(emp_id)
         self.name = name
         self.title = title
-        self.phone = str(phone)
+        if "-" not in phone:
+            if len(phone) == 9:
+                phone = phone[0:2] + '-' + phone[2:]
+            else:
+                phone = phone[0:3] + '-' + phone[3:]
+        self.phone = phone
         if type(birthday) is str:
             birthday = datetime.datetime.strptime(birthday, "%d-%m-%Y").date()
         self.birthday = birthday
