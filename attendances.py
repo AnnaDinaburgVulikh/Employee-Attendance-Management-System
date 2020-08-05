@@ -23,6 +23,31 @@ def attendance_report_by_id(cur, e_id=None):
         create_report_file(f'Attendance report for employee {e_id}.csv', report)
         messagebox.showinfo('Attendance Report', f'Check your library for the report (Employee ID {e_id}).')
 
+
+def month_check(month_input):
+    legal_month = 0
+    if month_input.isdecimal():
+        if 1 <= int(month_input) <= 12:
+            legal_month = 1
+    return legal_month
+
+
+def hour_check(hour_input):
+    legal_time = 0
+    message = ""
+    if len(hour_input) > 0:
+        try:
+            hour = datetime.datetime.strptime(hour_input, "%H:%M").time()
+            assert datetime.time(6, 0) <= hour <= datetime.time(19, 00)
+        except ValueError:
+            message = 'The time should be in the format HH:MM.'
+        except AssertionError:
+            message = 'Please enter a valid work time,\n between 6am and 7pm.'
+        else:
+            legal_time = 1
+    return legal_time, message
+
+
 def report_by_month(cur, month: int):
     now = datetime.datetime.now()
     cur_month = now.month
@@ -39,64 +64,24 @@ def report_by_month(cur, month: int):
         messagebox.showinfo("Attendance report by month", 'Check your library for the report.')
 
 
-def report_by_hour(cur, hour=None):
-    while hour is None:
-        try:
-            time = input('Please enter the hour for the report (HH:MM) : ')
-            hour = datetime.datetime.strptime(time, "%H:%M").time()
-            assert datetime.time(6, 0) <= hour <= datetime.time(19, 00)
-        except ValueError:
-            print('The time should be int the format HH:MM.')
-            hour = None
-        except AssertionError:
-            print('Please enter a valid work time, between 6am and 7pm.')
-            hour = None
-    print('Lets enter start date for the report (end date is today): ')
-    start_date = enter_date()
+def report_by_hour(cur, start_date: datetime, hour=None):
+    hour = datetime.datetime.strptime(hour, "%H:%M").time()
     report = db_connect.attendance_after_hour(cur, hour, start_date)
     hour = hour.strftime("%H.%M")
     if len(report) == 0:
-        print(f'No attendance was registered after {hour} from {start_date}.')
+        messagebox.showinfo("Attendance report by hour", f'No attendance was registered after {hour} from {start_date}.')
     else:
         create_report_file(f'Attendance report after {hour} from {start_date}.csv', report)
-        print(f'Check your library for the report.')
+        messagebox.showinfo("Attendance report by hour", f'Check your library for the report.')
 
 
-def enter_date():
-    while True:
-        try:
-            day, month, year = input('Please enter a date(dd-mm-yyyy): ').split('-')
-            date = datetime.date(int(year), int(month), int(day))
-            assert date < datetime.datetime.now().date()
-        except ValueError:
-            print('Please enter valid integer numbers.')
-        except AssertionError:
-            print('Only past dates are valid.')
-        else:
-            return date
-
-
-def report_by_dates(cur, start_date=None, end_date=None):
-    if start_date is None:
-        print('Lets enter start date: ')
-        start_date = enter_date()
-    if (end_date is not None) and end_date < start_date:
-        print(f'End date should be later than {start_date}.')
-    if end_date is None:
-        print('Lets enter end date: ')
-    while end_date is None or end_date < start_date:
-        try:
-            end_date = enter_date()
-            assert start_date <= end_date
-        except AssertionError:
-            print(f'End date should be later than {start_date}.')
-        else:
-            report = db_connect.attendance_by_date(cur, start_date, end_date)
-            if len(report) == 0:
-                print(f'No attendance was registered between {start_date} and {end_date}.')
-            else:
-                create_report_file(f'Attendance report between {start_date} and {end_date}.csv', report)
-                print(f'Check your library for the report.')
+def report_by_dates(cur, start_date: datetime, end_date: datetime):
+    report = db_connect.attendance_by_date(cur, start_date, end_date)
+    if len(report) == 0:
+        messagebox.showinfo("Attendance report between dates", f'No attendance was registered between {start_date} and {end_date}.')
+    else:
+        create_report_file(f'Attendance report between {start_date} and {end_date}.csv', report)
+        messagebox.showinfo("Attendance report between dates", f'Check your library for the report.')
 
 
 def create_report_file(path, lst):  # A helper function, creates the report files - attendance and reports
