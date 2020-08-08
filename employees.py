@@ -1,9 +1,5 @@
-import re
 import csv
 import datetime
-import os
-import GUI
-import attendances
 import db_connect
 from tkinter import *
 from tkinter import messagebox
@@ -45,7 +41,7 @@ class Employee:
         return self._age
 
     def __str__(self):
-        return f"ID Number: {self.id}\nName: {self.name}\nPhone: {self.phone}\nAge: {self._age}"
+        return f"ID Number: {self.id}\nName: {self.name}\nTitle: {self.title}\nPhone: {self.phone}\nAge: {self._age}"
 
     # Functions related to Employee
 
@@ -89,7 +85,8 @@ class Employee:
             return dic, (line_count - 1)
 
     @staticmethod
-    def check_id(cur=None, e_id=None):  # enter_id()
+    def check_id(cur=None, e_id=None):
+        # Checks if the ID is valid and if we have it in our database
         message = ""
         new_id = 0  # a flag for right input
         color = ""

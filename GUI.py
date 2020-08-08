@@ -9,15 +9,16 @@ from tkinter import ttk
 from tkinter import simpledialog
 
 
-
-class CreateMenu:
+class CreateMenu:   # Creates the menu bar for the app
     def __init__(self, master=None, cur=None):
         self.master = master
         self.menu_base = Menu(master)
+        master.config(menu=self.menu_base)  # Configure the connection between the window and the menu
         self.cur = cur
-        master.config(menu=self.menu_base)
+
         self.file_menu = Menu(self.menu_base)
         self.set_file_menu()
+
         self.report_menu = Menu(self.menu_base)
         self.set_report_menu()
 
@@ -42,13 +43,13 @@ class CreateMenu:
         self.report_menu.add_separator()
         self.report_menu.add_command(label='Late attendance by date and hour', command=self.att_by_hour)
 
-    def add_emp(self):  # Done
+    def add_emp(self):
         Add_emp_top_window(self.cur)
 
     def add_emp_file(self):
         add_or_del_emp_file(self.cur, 1)
 
-    def check_entered_id(self, e_id):
+    def check_entered_id(self, e_id):  # Checks the entered ID and returns prompt + color prompt
         id_exists, message, color = Employee.check_id(self.cur, e_id)
         if color == "blue":
             id_exists = 1
@@ -69,7 +70,7 @@ class CreateMenu:
     def del_emp_file(self):
         add_or_del_emp_file(self.cur, 0)
 
-    def mark_att(self):  # Done
+    def mark_att(self):  # Asks for ID, if correct marks an attendance. Else sends a prompt.
         e_id = simpledialog.askstring("Mark Attendance", "Please enter employee ID:")
         correct, message = self.check_entered_id(e_id)
         if correct == 1:
@@ -86,7 +87,7 @@ class CreateMenu:
             else:
                 messagebox.showinfo("Attendance Report", message)
 
-    def att_by_month(self):
+    def att_by_month(self):  # User selects month and gets the attendance for that month during last year.
         month = simpledialog.askstring("Attendance report by month", "Please enter a month (1-12):")
         if month is not None:
             test = attendances.month_check(month)
@@ -102,7 +103,7 @@ class CreateMenu:
         Create_report_top_window(self.cur, 'Hour')
 
 
-class CreateFrames:
+class CreateFrames:  # Creates the frames and widgets that make the app
     def __init__(self, master, cur):
         self.master_frame = master
         self.top_frame = Frame(master, relief=SUNKEN, width=600, height=100, pady=3)
@@ -180,6 +181,7 @@ class CreateFrames:
             self.bottom.del_entry()
 
     def id_input_prompt(self, event=None):
+        # Checks the input and returns the corresponding massage, color and makes actions available.
         self.prompt_id.destroy()
         self.add_button['state'] = DISABLED
         self.del_button['state'] = DISABLED
@@ -195,7 +197,7 @@ class CreateFrames:
         elif color == "green":  # There is no employee with this ID
             self.add_button['state'] = NORMAL
 
-    def add_emp(self):   # Done
+    def add_emp(self):
         Add_emp_top_window(self.cur, str(self.e_id.get()))
 
     def add_emp_file(self):
@@ -207,7 +209,7 @@ class CreateFrames:
     def del_emp_file(self):
         add_or_del_emp_file(self.cur, 0)
 
-    def mark_att(self):   # Done
+    def mark_att(self):
         attendances.mark_attendance(self.cur, self.e_id.get())
 
     def att_id_report(self):
@@ -215,6 +217,8 @@ class CreateFrames:
 
 
 class Bottom_frame_widgets(CreateFrames):
+    # Creates the bottom frame and also can be called from the menu in a top window
+    # for 2 functions: report by dates and report by hour
     def __init__(self, master, cur, top=None, report=None):
         self.top = top
         self.master_frame = master
@@ -276,7 +280,7 @@ class Bottom_frame_widgets(CreateFrames):
             line_label.grid(row=2, columnspan=5, sticky=EW, padx=30, pady=10)
             or_label.grid(row=5, column=1, sticky=E, padx=0, pady=8)
 
-    def del_entry(self, event=None):  # Clears the entry after pressing one of the functions
+    def del_entry(self, event=None):  # Clears the entry after pressing one of the buttons
         self.entry_month.delete(0, END)
         self.month_prompt()
         if event is None:
@@ -287,7 +291,7 @@ class Bottom_frame_widgets(CreateFrames):
             self.prompt_reports.destroy()
             self.entry_hour.delete(0, END)
 
-    def month_prompt(self, event=None):
+    def month_prompt(self, event=None):  # Checks the month input and makes the button available
         test = attendances.month_check(self.month.get())
         if test:
             self.month_button['state'] = NORMAL
@@ -327,7 +331,7 @@ class Bottom_frame_widgets(CreateFrames):
         self.prompt_reports.grid(row=5, column=2, columnspan=2, sticky=W, padx=5)
         self.check_report()
 
-    def check_report(self):
+    def check_report(self):  # Makes buttons available according to the input matrix(generate_report)
         if self.generate_report[0] == 1:
             if self.generate_report[1] == 1:
                 self.dates_button['state'] = NORMAL
@@ -352,7 +356,6 @@ class Bottom_frame_widgets(CreateFrames):
         self.prompt_reports.destroy()
         test, message = attendances.hour_check(self.hour.get())
         self.generate_report[2] = test
-        #if len(message) > 2:
         self.prompt_reports = Label(self.master_frame, text=message, fg="red")
         self.prompt_reports.grid(row=5, column=2, columnspan=2, sticky=W, padx=5)
         self.check_report()
@@ -494,7 +497,7 @@ class Add_emp_top_window:  # Class for top window used for adding an employee
         self.can_add_amp()
 
 
-class Create_report_top_window:  # Class for top window used for adding an employee
+class Create_report_top_window:  # Class for top window used for 2 report functions (by dates/by hour)
     def __init__(self, cur, report=None):
         self.top = Toplevel()
         w = 450
@@ -515,7 +518,7 @@ class Create_report_top_window:  # Class for top window used for adding an emplo
         self.top.mainloop()
 
 
-def add_or_del_emp_file(cur, add_emp):
+def add_or_del_emp_file(cur, add_emp):  # Function used for the adding/deleting employees
     file_path = filedialog.askopenfilename()
     if len(file_path) > 1:
         if add_emp == 1:
