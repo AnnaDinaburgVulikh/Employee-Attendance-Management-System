@@ -90,11 +90,17 @@ class Employee:
         message = ""
         new_id = 0  # a flag for right input
         color = ""
+        valid_id = 0
+        if len(e_id) == 9:
+            valid_id = sum(sum(map(int, str(int(a) * (i % 2 + 1)))) for i, a in enumerate(e_id, 0)) % 10 == 0
         if e_id is None or len(e_id) == 0:
             message = "Please enter ID to proceed."
             color = "black"
         elif not e_id.isdecimal() or (len(e_id) != 9):
             message = "The ID should be an integer of 9 digits."
+            color = "red"
+        elif not valid_id:
+            message = "The ID isn't valid."
             color = "red"
         elif cur is not None:  # 9 digit ID
             if db_connect.check_id_exist(cur, e_id):
