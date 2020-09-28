@@ -1,6 +1,14 @@
 # Employee-Attendance-Management-System
 She Codes learning project for python course using PostgreSQL and PGadmin
 
+## **Running the project
+
+### **Init docker and database:**
+1. In terminal run: `docker-compose up --detach`.
+2. Install dependencies using `pipenv install`.
+3. Run `init_database.py` to setup your database.
+4. Use `main.py` to start the GUI.
+
 ## **Project Files**
 
 #### **The project is built from 5 source files:**
