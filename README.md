@@ -1,7 +1,7 @@
 # Employee-Attendance-Management-System
 She Codes learning project for python course using PostgreSQL and PGadmin
 
-## **Running the project
+## **Running the project**
 
 ### **Init docker and database:**
 1. In terminal run: `docker-compose up --detach`.
@@ -19,9 +19,9 @@ She Codes learning project for python course using PostgreSQL and PGadmin
 5. **db_connect** - includes all the SQL queries that are used to communicate with the database
 
 #### Init and Config files:
-1. **database.ini** - stores basic variables as host, user, password, database. Used by _config.py_ .
-2. **config.py** - starts the connection with the database. Used in _main.py_ and _init_database.py_.
-3. **init_database.py** - initialises the tables in the database. Sould run it before running _main.py_ for the first time.
+1. **database.ini** - stores basic variables as host, user, password, database. Used by `config.py` .
+2. **config.py** - starts the connection with the database. Used in `main.py` and `init_database.py`.
+3. **init_database.py** - initialises the tables in the database. Sould run it before running `main.py` for the first time.
 
 #### **The data will be stored in 2 tables in the DB:**
 1. **Employees** - stores data about the employees, includes _(ID, name, phone number and birthday)_.
@@ -54,10 +54,10 @@ She Codes learning project for python course using PostgreSQL and PGadmin
 #### Employees related functions: 
 Each function updates employees table.  
 1. Add employee manually - uses an add employee menu with proper fields, includes verification and checks for doubles based on ID.
-2. Add employee from file - accepts a .csv file, adds the employees only if all the data in the rows is valid. 
+2. Add employee from file - accepts a `.csv` file, adds the employees only if all the data in the rows is valid. 
 Prompts the user about the first encountered invalid data.
 3. Delete employee manually - deletes an employee by ID, prompts if the employee doesn't exist or invalid ID.
-4. Delete employees from file - accepts a .csv file, deletes the employees by ID only if all the supplied data is valid (only ID's in the file). 
+4. Delete employees from file - accepts a `.csv` file, deletes the employees by ID only if all the supplied data is valid (only ID's in the file). 
 Prompts the user with number of deleted users or first invalid row.
 
 #### Attendance related functions:
