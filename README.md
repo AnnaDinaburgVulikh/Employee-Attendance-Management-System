@@ -9,7 +9,7 @@ She Codes learning project for python course using PostgreSQL and PGadmin
 3. Run `init_database.py` to setup your database.
 4. Use `main.py` to start the GUI.
 
-![GUI screenshot](GUI-screenshot.JPG)
+<img src="GUI-screenshot.JPG" alt="GUI screenshot" width="60%"/>
 
 ## **Project Files**
 
